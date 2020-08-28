@@ -1,0 +1,32 @@
+from manpac.utils import export
+
+from enum import Enum
+import numpy as np
+
+
+@export
+class Direction(Enum):
+    """
+    Represent a direction in which an entity can move.
+    ```direction.vector``` is equal to the respective numpy vector representing the unit movement in that direction.
+    """
+    def __new__(cls, vector):
+        value = len(cls.__members__) + 1
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.vector = vector
+        return obj
+    LEFT = np.array([0, -1], dtype=np.float64)
+    RIGHT = np.array([0, 1], dtype=np.float64)
+    TOP = np.array([-1, 0], dtype=np.float64)
+    BOTTOM = np.array([1, 0], dtype=np.float64)
+
+    def __neg__(self):
+        if self == Direction.LEFT:
+            return Direction.RIGHT
+        elif self == Direction.RIGHT:
+            return Direction.LEFT
+        elif self == Direction.TOP:
+            return Direction.BOTTOM
+        elif self == Direction.BOTTOM:
+            return Direction.TOP
