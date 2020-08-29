@@ -5,12 +5,6 @@ from manpac.cell import Cell
 import numpy as np
 
 
-def __next_cell__(pos, max_bounds, v, speed, ticks):
-    next = np.clip(pos + v, 0, max_bounds)
-    ticks_used = min(np.max(np.abs(next - pos)) / speed, ticks)
-    return next.astype(dtype=np.int), ticks_used
-
-
 @export
 class Map():
     """
