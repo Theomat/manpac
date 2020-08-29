@@ -16,10 +16,10 @@ class Direction(Enum):
         obj._value_ = value
         obj.vector = vector
         return obj
-    LEFT = np.array([0, -1], dtype=np.float64)
-    RIGHT = np.array([0, 1], dtype=np.float64)
-    TOP = np.array([-1, 0], dtype=np.float64)
-    BOTTOM = np.array([1, 0], dtype=np.float64)
+    LEFT = np.array([0, -1], dtype=np.int64)
+    RIGHT = np.array([0, 1], dtype=np.int64)
+    TOP = np.array([-1, 0], dtype=np.int64)
+    BOTTOM = np.array([1, 0], dtype=np.int64)
 
     def __neg__(self):
         if self == Direction.LEFT:

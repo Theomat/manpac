@@ -75,7 +75,7 @@ class Map():
         speed = entity.speed
         if speed <= 0:
             return
-        v = entity.direction.vector.astype(dtype=np.int)
+        v = entity.direction.vector
         intangible = not entity.is_tangible
         maxi = 0
         if intangible:
