@@ -6,7 +6,12 @@ from abc import ABC
 @export
 class AbstractController(ABC):
     """
-    Reprents an abstract controller.
+    Represents an abstract controller.
+
+    Parameters
+    -----------
+    - *game*: (**Game**)
+        the game this controller is being used in
     """
 
     def __init__(self, game):
@@ -14,9 +19,20 @@ class AbstractController(ABC):
         self.entity = None
 
     def on_attach(self, entity):
+        """
+        Fired when this controller is attached to an entity.
+
+        Parameters
+        -----------
+        - *entity*: (**Entity**)
+            the entity this controller is being attached to
+        """
         self.entity = entity
 
     def on_death(self):
+        """
+        Fired upon the death of the entity this controlled was attached to.
+        """
         pass
 
     def update(self, ticks):
