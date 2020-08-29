@@ -66,6 +66,8 @@ class Map():
             self.terrain[key] = value
 
     def is_walkable(self, pos):
+        if (pos < 0).any() or (pos > self.max_bounds).any():
+            return False
         return Cell(self[pos]).walkable
 
     def move(self, entity, ticks):
