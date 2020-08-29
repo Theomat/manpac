@@ -21,7 +21,7 @@ class Entity():
         # Default speed in cells / tick
         self.base_speed = 1
         # Their size (radius) in cells
-        self.size = 1
+        self.size = .5
         # True if entity is moving otherwise False
         self.moving = False
         # Their current facing direction
