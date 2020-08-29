@@ -4,7 +4,7 @@ from manpac.map import Map
 from manpac.game import Game
 from manpac.direction import Direction
 from manpac.game_status import GameStatus
-from manpac.controllers.pacman_controller import PacmanController
+from manpac.controllers.target_seeker_controller import TargetSeekerController
 from manpac.controllers.random_walk_controller import RandomWalkController
 
 import pytest
@@ -21,7 +21,7 @@ def test_static_hunt():
 
     g = Game(Map((10, 10)), ghost, pacman, ghost2, ghost3, ghost4)
 
-    controller = PacmanController(g)
+    controller = TargetSeekerController(g)
     pacman.attach(controller)
 
     g.start()
@@ -48,7 +48,7 @@ def test_random_hunt():
         if entity.type is EntityType.GHOST:
             entity.attach(RandomWalkController(g, 2))
 
-    controller = PacmanController(g)
+    controller = TargetSeekerController(g)
     pacman.attach(controller)
 
     g.start()

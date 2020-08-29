@@ -36,13 +36,18 @@ def find_path(src, dst, map):
 
 
 @export
-class PacmanController(AbstractController):
+class TargetSeekerController(AbstractController):
     """
-    Reprents a pacman controller.
+    Reprents a target seeker controller.
+
+    Parameters
+    -----------
+    - *game*: (**Game**)
+        the game this controller is being used in
     """
 
     def __init__(self, game):
-        self.game = game
+        super(TargetSeekerController, self).__init__(game)
         self.entity = None
         self.aggro = None
         self.path = []
@@ -50,6 +55,14 @@ class PacmanController(AbstractController):
         self._last_path_update = 9999
 
     def select_target(self):
+        """
+        Select the new target.
+
+        Return
+        ----------
+        The new entity to target.
+        type: (**Entity**)
+        """
         closest = self.aggro
         distance = 1e14
         for entity in self.game.entities:
@@ -62,6 +75,14 @@ class PacmanController(AbstractController):
         return closest
 
     def on_change_target(self, old_target):
+        """
+        Fired upon change of target.
+
+        Parameters
+        -----------
+        - *old_target*: (**Entity**)
+            the old target
+        """
         self._last_path_update = 0
         self.path = find_path(self.entity.map_position, self.aggro.map_position, self.game.map)
 
