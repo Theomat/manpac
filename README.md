@@ -30,10 +30,11 @@ Once a power-up is picked up or disappear, a pac-man power-up spawns at the same
 - [numpy](https://numpy.org/)
 - [pygame](https://www.pygame.org/)
 - [pytest](https://github.com/pytest-dev/pytest/)
+- [pytest-timeout](https://github.com/pytest-dev/pytest-timeout/)
 
 You can easily create an environment with the right dependencies:
 ```bash
-conda create --name manpac python>=3.6 numpy pygame pytest
+conda create --name manpac python>=3.6 numpy pygame pytest pytest-timeout
 ```
 
 ## Branches
