@@ -11,6 +11,11 @@ from functools import reduce
 class Entity():
     """
     Represents a game entity.
+
+    Parameters
+    -----------
+    - *type*: (**EntityType**)
+        the type of this entity
     """
 
     def __init__(self, type):
@@ -48,12 +53,17 @@ class Entity():
 
     @property
     def map_position(self):
+        """
+        The map position of this entity.
+        type: **numpy.ndarray**, dtype=numpy.int
+        """
         return self.pos.astype(dtype=np.int)
 
     @property
     def speed(self):
         """
         The current speed of this entity in cells / tick.
+        type: **float**
         """
         return reduce(operator.mul,
                       [modifier.speed_multiplier for modifier in self.modifiers],
@@ -143,25 +153,30 @@ class Entity():
             self.controller.update(ticks)
 
     def pickup(self, modifier):
+        """
+        Pickup the specified modifier, if the entity is already holding a modifier, the former is discarded.
+
+        Parameters
+        -----------
+        - *modifier*: (**AbstractModifier**)
+            the modifier to be picked up
+        """
         if not self.holding:
             self.holding = modifier
 
-    def use_boost(self):
-        self.modifiers.append(self.holding)
-        self.holding.use()
-        self.holding = None
+    def use_modifier(self):
+        """
+        Use the modifier this entity is holding.
+        """
+        if self.holding:
+            self.modifiers.append(self.holding)
+            self.holding.use()
+            self.holding = None
 
     @property
     def is_tangible(self):
         """
-        Return True only if this entit ycan collide with the specified entity.
-        Parameters
-        -----------
-        - *other*: (**Entity**)
-            the enitity to chekc collision with
-        Return
-        -----------
-        True if this entity can collide with the specified entity, False otherwise.
+        False if this entity can walk through walls or any entities.
         type: **bool**
         """
         return reduce(operator.and_,
@@ -174,7 +189,7 @@ class Entity():
         Parameters
         -----------
         - *other*: (**Entity**)
-            the enitity to chekc collision with
+            the entity to chekc collision with
         Return
         -----------
         True if this entity can collide with the specified entity, False otherwise.
@@ -188,6 +203,9 @@ class Entity():
                           False)
 
     def kill(self):
+        """
+        Kill this entity.
+        """
         self.alive = False
         if self.controller:
             self.controller.on_death()
