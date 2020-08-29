@@ -1,0 +1,66 @@
+from manpac.entity_type import EntityType
+from manpac.entity import Entity
+from manpac.map import Map
+from manpac.game import Game
+from manpac.direction import Direction
+from manpac.game_status import GameStatus
+
+
+def test_status():
+    g = Game(Map((10, 10)), Entity(EntityType.GHOST), Entity(EntityType.PACMAN))
+
+    assert g.status is GameStatus.NOT_STARTED
+    g.start()
+    assert g.status is GameStatus.FINISHED
+
+
+def test_collision_resolution():
+    ghost = Entity(EntityType.GHOST)
+    pacman = Entity(EntityType.PACMAN)
+    pacman.moving = True
+    pacman2 = Entity(EntityType.PACMAN)
+    pacman2.moving = True
+    pacman2.face(-pacman.direction)
+
+    g = Game(Map((10, 10)), ghost, pacman)
+    g.start()
+
+    g.on_collision(pacman, ghost)
+    assert not ghost.alive
+    assert pacman.alive
+
+    g.entities.append(ghost)
+    ghost.alive = True
+    g.on_collision(ghost, pacman)
+    assert not ghost.alive
+    assert pacman.alive
+
+    assert pacman.squared_distance_to(pacman2.pos) < (pacman2.size + pacman.size)**2
+    g.on_collision(pacman, pacman2)
+    assert pacman.squared_distance_to(pacman2.pos) >= (pacman2.size + pacman.size)**2
+
+
+def test_collision_check():
+    ghost = Entity(EntityType.GHOST)
+    ghost2 = Entity(EntityType.GHOST)
+    ghost3 = Entity(EntityType.GHOST)
+    ghost4 = Entity(EntityType.GHOST)
+    pacman = Entity(EntityType.PACMAN)
+    pacman.moving = True
+    ghost2.moving = False
+    pacman.face(Direction.RIGHT)
+
+    g = Game(Map((10, 10)), ghost, pacman, ghost2, ghost3, ghost4)
+    g.start()
+    ghost2.teleport(Direction.RIGHT.vector * 3)
+    ghost3.teleport(Direction.BOTTOM.vector * 3)
+    assert g.status is GameStatus.ONGOING
+    assert g.ghosts == 4
+    g.update(1)
+    assert g.ghosts == 2
+    assert g.status is GameStatus.ONGOING
+    g.update(1)
+    assert g.status is GameStatus.ONGOING
+    g.update(5)
+    assert g.ghosts == 1
+    assert g.status is GameStatus.FINISHED
