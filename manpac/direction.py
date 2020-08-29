@@ -30,3 +30,8 @@ class Direction(Enum):
             return Direction.BOTTOM
         elif self == Direction.BOTTOM:
             return Direction.TOP
+
+    def __lt__(self, o):
+        if isinstance(o, Direction):
+            return self.value < o.value
+        return self.value < o
