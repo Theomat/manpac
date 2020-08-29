@@ -5,20 +5,9 @@ from manpac.game import Game
 from manpac.direction import Direction
 from manpac.game_status import GameStatus
 from manpac.controllers.pacman_controller import PacmanController
-from manpac.controllers.abstract_controller import AbstractController
+from manpac.controllers.random_walk_controller import RandomWalkController
 
 import pytest
-import numpy as np
-
-
-directions = [d for d in Direction]
-
-
-class RandomController(AbstractController):
-
-    def update(self, ticks):
-        self.entity.moving = True
-        self.entity.face(directions[np.random.randint(0, 3, 1)[0]])
 
 
 @pytest.mark.timeout(3)
@@ -45,7 +34,7 @@ def test_static_hunt():
     assert g.status is GameStatus.FINISHED
 
 
-@pytest.mark.timeout(3)
+@pytest.mark.timeout(5)
 def test_random_hunt():
     ghost = Entity(EntityType.GHOST)
     ghost2 = Entity(EntityType.GHOST)
@@ -57,7 +46,7 @@ def test_random_hunt():
     g = Game(Map((10, 10)), ghost, pacman, ghost2, ghost3, ghost4)
     for entity in g.entities:
         if entity.type is EntityType.GHOST:
-            entity.attach(RandomController(g))
+            entity.attach(RandomWalkController(g, 2))
 
     controller = PacmanController(g)
     pacman.attach(controller)
