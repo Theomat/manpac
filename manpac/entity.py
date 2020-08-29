@@ -47,6 +47,10 @@ class Entity():
         controller.on_attach(self)
 
     @property
+    def map_position(self):
+        return self.pos.astype(dtype=np.int)
+
+    @property
     def speed(self):
         """
         The current speed of this entity in cells / tick.
