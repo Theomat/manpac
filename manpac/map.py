@@ -9,9 +9,16 @@ import numpy as np
 class Map():
     """
     Represents a map.
+
+    Parameters
+    -----------
+    - *shape*: (**array_like**)
+        the shape of the map
+    - *boost_generator* (**AbstractBoostGenerator**)
+        the boost generator of this map
     """
 
-    def __init__(self, shape):
+    def __init__(self, shape, boost_generator=None):
         # Init spawn points
         self.spawns = {}
         for type in EntityType:
@@ -21,9 +28,9 @@ class Map():
         self.max_bounds = np.array(shape) - 1
         # Boost generator
         self.boost_generator = None
-        # Ghost boosts
+        # Ghost boosts which are (loc, remaining_duration)
         self.ghost_boosts = []
-        # Pacman boosts
+        # Pacman boosts which are (loc, *)
         self.pacman_boosts = []
         # Boost livetime
         self.boost_duration = 600
@@ -66,6 +73,18 @@ class Map():
             self.terrain[key] = value
 
     def is_walkable(self, pos):
+        """
+        Return True is the specified pos is within bounds and walkable.
+
+        Parameters
+        -----------
+        - *pos*: (**numpy.ndarray**)
+            the position to look at
+        Return
+        -----------
+        True is the specified pos is within bounds and walkable.
+        type: **bool**
+        """
         if (pos < 0).any() or (pos > self.max_bounds).any():
             return False
         return Cell(self[pos]).walkable
@@ -73,6 +92,13 @@ class Map():
     def move(self, entity, ticks):
         """
         Move the specified entity on this map for the specified number of ticks.
+
+        Parameters
+        -----------
+        - *entity*: (**Entity**)
+            the entity to be moved
+        - *ticks*: (**float**)
+            the number of ticks elapsed
         """
         speed = entity.speed
         if speed <= 0:
