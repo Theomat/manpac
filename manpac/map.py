@@ -35,6 +35,22 @@ class Map():
         # Boost livetime
         self.boost_duration = 600
 
+    @property
+    def width(self):
+        """
+        The width of this map.
+        type: **int**
+        """
+        return self.terrain.shape[0]
+
+    @property
+    def height(self):
+        """
+        The height of this map.
+        type: **int**
+        """
+        return self.terrain.shape[1]
+
     def update(self, ticks):
         """
         Update this map for the specified number of ticks.
