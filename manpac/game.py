@@ -11,17 +11,30 @@ MAX_TICK_UNIT = .5
 @export
 class Game():
     """
-    Represents a game.
+    Represents a game comprised of the specified entities.
+
+    Parameters
+    -----------
+    - *entities*: (**Entity iterable**)
+        the collection of entities taking part in this game
     """
 
-    def __init__(self, map, *entities):
-        self.map = map
+    def __init__(self, *entities):
         self.entities = list(entities)
         self.status = GameStatus.NOT_STARTED
         self.duration = 0
 
-    def start(self):
+    def start(self, map):
+        """
+        Start a game on the specified map.
+
+        Parameters
+        -----------
+        - *map*: (**Map**)
+            the map this game will take place on
+        """
         assert self.status is GameStatus.NOT_STARTED
+        self.map = map
         self.duration = 0
         self.ghosts = 0
         for entity in self.entities:
@@ -80,6 +93,13 @@ class Game():
                         break
 
     def on_collision(self, entity1, entity2):
+        """
+        Procees to do the resolution of a collision between the two entities.
+        Parameters
+        -----------
+        - *entity1*, *entity2*: (**Entity**)
+            the entities that were part of the collision
+        """
         if entity1.type is EntityType.PACMAN and entity2.type is EntityType.GHOST:
             entity2.kill()
             self.entities.remove(entity2)

@@ -7,10 +7,10 @@ from manpac.game_status import GameStatus
 
 
 def test_status():
-    g = Game(Map((10, 10)), Entity(EntityType.GHOST), Entity(EntityType.PACMAN))
+    g = Game(Entity(EntityType.GHOST), Entity(EntityType.PACMAN))
 
     assert g.status is GameStatus.NOT_STARTED
-    g.start()
+    g.start(Map((10, 10)))
     assert g.status is GameStatus.FINISHED
 
 
@@ -22,8 +22,8 @@ def test_collision_resolution():
     pacman2.moving = True
     pacman2.face(-pacman.direction)
 
-    g = Game(Map((10, 10)), ghost, pacman)
-    g.start()
+    g = Game(ghost, pacman)
+    g.start(Map((10, 10)))
 
     g.on_collision(pacman, ghost)
     assert not ghost.alive
@@ -50,8 +50,8 @@ def test_collision_check():
     ghost2.moving = False
     pacman.face(Direction.RIGHT)
 
-    g = Game(Map((10, 10)), ghost, pacman, ghost2, ghost3, ghost4)
-    g.start()
+    g = Game(ghost, pacman, ghost2, ghost3, ghost4)
+    g.start(Map((10, 10)))
     ghost2.teleport(Direction.RIGHT.vector * 3)
     ghost3.teleport(Direction.BOTTOM.vector * 3)
     assert g.status is GameStatus.ONGOING

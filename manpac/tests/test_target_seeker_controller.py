@@ -19,12 +19,12 @@ def test_static_hunt():
     pacman = Entity(EntityType.PACMAN)
     ghost2.moving = False
 
-    g = Game(Map((10, 10)), ghost, pacman, ghost2, ghost3, ghost4)
+    g = Game(ghost, pacman, ghost2, ghost3, ghost4)
 
     controller = TargetSeekerController(g)
     pacman.attach(controller)
 
-    g.start()
+    g.start(Map((10, 10)))
     ghost2.teleport(Direction.RIGHT.vector * 3)
     ghost3.teleport(Direction.BOTTOM.vector * 3)
     assert g.status is GameStatus.ONGOING
@@ -43,7 +43,7 @@ def test_random_hunt():
     pacman = Entity(EntityType.PACMAN)
     ghost2.moving = False
 
-    g = Game(Map((10, 10)), ghost, pacman, ghost2, ghost3, ghost4)
+    g = Game(ghost, pacman, ghost2, ghost3, ghost4)
     for entity in g.entities:
         if entity.type is EntityType.GHOST:
             entity.attach(RandomWalkController(g, 2))
@@ -51,7 +51,7 @@ def test_random_hunt():
     controller = TargetSeekerController(g)
     pacman.attach(controller)
 
-    g.start()
+    g.start(Map((10, 10)))
     ghost2.teleport(Direction.RIGHT.vector * 3)
     ghost3.teleport(Direction.BOTTOM.vector * 3)
     assert g.status is GameStatus.ONGOING
