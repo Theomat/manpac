@@ -1,8 +1,32 @@
 from manpac.utils import export
 from manpac.entity_type import EntityType
 from manpac.cell import Cell
+from manpac.direction import Direction
 
 import numpy as np
+
+
+def __find_first_unwalkable__(map, considered_pos, speed, v, ticks):
+    times = 0
+    unwalkable = [pos for pos in considered_pos if not map.is_walkable(pos.astype(dtype=np.int))]
+    while not unwalkable and times - 1 < speed * ticks:
+        for pos in considered_pos:
+            pos += v
+        unwalkable = [pos for pos in considered_pos if not map.is_walkable(pos.astype(dtype=np.int))]
+        times += 1
+    # Not enough time
+    if times - 1 >= speed * ticks:
+        return considered_pos
+    return unwalkable
+
+def __find_first_walkable__(map, considered_pos, size, speed, v, ticks):
+    unwalkables = __find_first_unwalkable__(map, considered_pos, speed, v, ticks)
+    for unwalkable in unwalkables:
+        walkable = np.clip(unwalkable, size, map.max_bounds - size)
+        if not map.is_walkable(walkable.astype(dtype=np.int)):
+            to_out = np.abs(walkable - walkable.astype(dtype=np.int))
+            walkable -= v * (to_out + size)
+        yield walkable
 
 
 @export
@@ -105,6 +129,28 @@ class Map():
             return False
         return Cell(self[pos]).walkable
 
+    def closest_walkable(self, pos):
+        """
+        """
+        closest = None
+        distance = 1e10
+
+        considered_pos = [pos.astype(dtype=np.int)]
+        while closest is None:
+            new_considered_pos = []
+            for pos in considered_pos:
+                for direction in Direction:
+                    new_pos = pos + direction.vector
+                    if not self.is_walkable(new_pos):
+                        new_considered_pos.append(new_pos)
+                    else:
+                        dist = np.sum(np.square(pos - new_pos))
+                        if dist < distance:
+                            distance = dist
+                            closest = new_pos
+            considered_pos = new_considered_pos
+        return closest
+
     def move(self, entity, ticks):
         """
         Move the specified entity on this map for the specified number of ticks.
@@ -127,21 +173,18 @@ class Map():
             maxi = min(np.max(np.abs(next - entity.pos)) / speed, ticks)
         else:
             # Finds first unwalkable tile
-            current = entity.pos.copy()
-            times = 0
-            while (current <= self.max_bounds).all() and \
-                    (current >= 0).all() and \
-                    self.is_walkable(current.astype(dtype=np.int)) and \
-                    times - 1 < speed * ticks:
-                current += v
-                times += 1
-            # Now current is unwalkable
-            walkable = np.clip(current, entity.size, self.max_bounds - entity.size)
-            if not self.is_walkable(walkable.astype(dtype=np.int)):
-                to_out = walkable - walkable.astype(dtype=np.int)
-                walkable -= v * (to_out + entity.size)
+            cases_where_entity = []
+            for direction in Direction:
+                coord = self.closest_walkable(entity.pos + direction.vector)
+                if entity.squared_distance_to(coord) <= entity.size**2:
+                    cases_where_entity.append(coord)
+            walkables = __find_first_walkable__(self, cases_where_entity, entity.size, speed, v, ticks)
+
             # Now walkable is target coordinates
-            maxi = min(np.max(np.abs(walkable - entity.pos)) / speed, ticks)
+            maxi = ticks if walkables else 0
+            for walkable in walkables:
+                maxi = min(np.max(np.abs(walkable - entity.pos)) / speed, maxi)
+
         # Pick up boosts
         boosts = self.ghost_boosts if entity.type is EntityType.GHOST else self.pacman_boosts
         for index, (loc, t) in enumerate(boosts):

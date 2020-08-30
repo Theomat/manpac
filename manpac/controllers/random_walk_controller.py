@@ -20,7 +20,7 @@ class RandomWalkController(AbstractController):
 
     def __init__(self, game, switch_duration):
         super(RandomWalkController, self).__init__(game)
-        self._dir_duration = 0
+        self._dir_duration = switch_duration + 1
         self.switch_duration = switch_duration
 
     def update(self, ticks):
@@ -29,3 +29,5 @@ class RandomWalkController(AbstractController):
             choices = [dir for dir in Direction
                        if self.game.map.is_walkable(self.entity.map_position + dir.vector)]
             self.entity.face(random.choice(choices))
+            self.entity.moving = True
+            self._dir_duration = 0

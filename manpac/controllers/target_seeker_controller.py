@@ -84,7 +84,7 @@ class TargetSeekerController(AbstractController):
             the old target
         """
         self._last_path_update = 0
-        self.path = find_path(self.entity.map_position, self.aggro.map_position, self.game.map)
+        self.path = find_path(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos), self.game.map)
 
     def update(self, ticks):
         self._last_aggro_update += ticks
@@ -99,7 +99,7 @@ class TargetSeekerController(AbstractController):
 
         # Update path
         if self._last_path_update >= PATH_REFRESH:
-            self.path = find_path(self.entity.map_position, self.aggro.map_position, self.game.map)
+            self.path = find_path(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos), self.game.map)
             self._last_path_update = 0
 
         # Face right direction

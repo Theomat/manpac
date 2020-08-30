@@ -24,7 +24,9 @@ class Entity():
         # True if the entity is alive otherwise False
         self.alive = False
         # Default speed in cells / tick
-        self.base_speed = 1
+        self.base_speed = .4
+        if type is EntityType.PACMAN:
+            self.base_speed *= 1.2
         # Their size (radius) in cells
         self.size = .5
         # True if entity is moving otherwise False

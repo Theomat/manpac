@@ -5,16 +5,16 @@ import pygame
 
 
 _IMAGE_SET_ = {
-    EntityType.GHOST: ["b1", "b2", "d1", "d2", "g1", "h1", "h2"],
-    EntityType.PACMAN: ["0", "b1", "b2", "d1", "d2", "g1", "h1", "h2"]
+    EntityType.GHOST: ["b1", "b2", "d1", "d2", "g1", "g2", "h1", "h2"],
+    EntityType.PACMAN: ["0", "b1", "b2", "d1", "d2", "g1", "g2", "h1", "h2"]
 }
 
 _COMBINATIONS_SET_ = {
     EntityType.GHOST:  {
-        Direction.LEFT: [],
-        Direction.RIGHT: [],
-        Direction.UP: [],
-        Direction.DOWN: []
+        Direction.LEFT: [4, 5, 4, 5],
+        Direction.RIGHT: [2, 3, 2, 3],
+        Direction.UP: [6, 7, 6, 7],
+        Direction.DOWN: [0, 1, 0, 1]
     },
     EntityType.PACMAN: {
         Direction.LEFT: [0, 6, 5, 6],
@@ -46,9 +46,11 @@ class EntityDrawer():
         self.last_direction = entity.direction
 
     def draw(self, display):
+        if not self.entity.alive:
+            return
         pos = (self.entity.pos - self.entity.size) * self.scale
         current_sprite = self.sprites[self.last_direction][self.sprite_index]
-        display.blit(current_sprite, (int(pos[0]), int(pos[1])))
+        display.blit(current_sprite, (round(pos[0]), round(pos[1])))
 
         if self.entity.direction != self.last_direction:
             self.last_direction = self.entity.direction
