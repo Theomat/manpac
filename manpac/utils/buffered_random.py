@@ -63,3 +63,29 @@ class BufferedRandom():
         """
         out = self.uniform(lb, ub)
         return int(np.round(out))
+
+    def choice(self, sequence, odds):
+        """
+        Return a random element from the sequence given the odds sequence.
+
+        Parameters
+        -----------
+        - *sequence*: (**T list**)
+            the sequence from which a random element will be selected
+        - *odds*: (**float list**)
+            the odds of each element being selected
+
+        Return
+        -----------
+        A random element from sequence.
+        type: **T**
+        """
+        assert sequence and odds
+        total_odds = sum(odds)
+        assert total_odds > 0
+        n = self.uniform(0, total_odds)
+        i = 0
+        while n > odds[i]:
+            n -= odds[i]
+            i += 1
+        return sequence[i]

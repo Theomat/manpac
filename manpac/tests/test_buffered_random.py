@@ -26,3 +26,17 @@ def test_randint():
             x = rand.randint(a, b)
             assert a <= x
             assert b >= x
+
+
+def test_choice():
+    rand = BufferedRandom()
+
+    collection = ["a", "b", "c", "d"]
+    odds = [0, 0, 2, 0]
+
+    for i in range(10):
+        assert "c" == rand.choice(collection, odds)
+
+    odds[3] = 1
+    for i in range(10):
+        assert rand.choice(collection, odds) in collection[-2:]
