@@ -54,6 +54,38 @@ def test_move():
     np.testing.assert_allclose(ent.pos, old_pos)
 
 
+def test_closest_walkable():
+    map = Map((10, 10))
+
+    assert (map.closest_walkable(np.array([-1, 0])) == np.array([0, 0])).all()
+    assert (map.closest_walkable(np.array([0, -1])) == np.array([0, 0])).all()
+    assert (map.closest_walkable(np.array([10, 9])) == np.array([9, 9])).all()
+    assert (map.closest_walkable(np.array([9, 10])) == np.array([9, 9])).all()
+
+    pos = [4, 5]
+
+    for i in range(10):
+        n = np.random.random(1)[0]
+        assert (map.closest_walkable(np.array([-n, 0])) == np.array([0, 0])).all()
+        assert (map.closest_walkable(np.array([0, -n])) == np.array([0, 0])).all()
+        assert (map.closest_walkable(np.array([9 + n, 9])) == np.array([9, 9])).all()
+        assert (map.closest_walkable(np.array([9, 9 + n])) == np.array([9, 9])).all()
+        n = n / 2
+        assert (map.closest_walkable(np.array([4-n, 5])) == pos).all()
+        assert (map.closest_walkable(np.array([4, 5-n])) == pos).all()
+        assert (map.closest_walkable(np.array([4 + n, 5])) == pos).all()
+        assert (map.closest_walkable(np.array([4, 5 + n])) == pos).all()
+
+    map[pos] = Cell.WALL
+    for i in range(10):
+        n = np.random.random(1)[0]
+        n = n / 2
+        assert not (map.closest_walkable(np.array([4-n, 5])) == pos).all()
+        assert not (map.closest_walkable(np.array([4, 5-n])) == pos).all()
+        assert not (map.closest_walkable(np.array([4 + n, 5])) == pos).all()
+        assert not (map.closest_walkable(np.array([4, 5 + n])) == pos).all()
+
+
 @pytest.mark.timeout(5)
 def test_move_bounds():
     size = 10
@@ -66,19 +98,19 @@ def test_move_bounds():
     for direction in Direction:
         for i in range(10):
             ent.face(direction)
-            p = np.clip(np.random.random_sample(2) * (size - 1), ent.size, size - 1 - ent.size)
+            p = np.clip(np.random.random_sample(2) * size, ent.size, size - ent.size)
             ent.teleport(p)
 
             # Move for n ticks
             old_pos = ent.pos.copy() + ent.direction.vector * ent.speed * ticks
-            old_pos = np.clip(old_pos, ent.size, size-1 - ent.size)
+            old_pos = np.clip(old_pos, ent.size, size - ent.size)
             map.move(ent, ticks)
             np.testing.assert_allclose(ent.pos, old_pos)
 
             #  Move for n ticks
             ent.face(-ent.direction)
             old_pos = ent.pos.copy() + ent.direction.vector * ent.speed * ticks
-            old_pos = np.clip(old_pos, ent.size, size-1 - ent.size)
+            old_pos = np.clip(old_pos, ent.size, size - ent.size)
             map.move(ent, ticks)
             np.testing.assert_allclose(ent.pos, old_pos)
 
@@ -94,24 +126,29 @@ def test_move_walls():
 
     map[:, 7:] = Cell.WALL
     map[8:, :] = Cell.WALL
+    map[:1, :] = Cell.WALL
+    map[:, :2] = Cell.WALL
     max_bounds = np.array([8, 7]) - ent.size
+    min_bounds = np.array([1, 2]) + ent.size
 
     for direction in Direction:
         for i in range(10):
             ent.face(direction)
-            p = np.clip(np.random.random_sample(2) * (size - 1), ent.size, max_bounds)
+            p = np.clip(np.random.random_sample(2) * (size - 1), min_bounds, max_bounds)
             ent.teleport(p)
+
+            map.print()
 
             # Move for n ticks
             old_pos = ent.pos.copy() + ent.direction.vector * ent.speed * ticks
-            old_pos = np.clip(old_pos, ent.size, max_bounds)
+            old_pos = np.clip(old_pos, min_bounds, max_bounds)
             map.move(ent, ticks)
             np.testing.assert_allclose(ent.pos, old_pos)
 
             #  Move for n ticks
             ent.face(-ent.direction)
             old_pos = ent.pos.copy() + ent.direction.vector * ent.speed * ticks
-            old_pos = np.clip(old_pos, ent.size, max_bounds)
+            old_pos = np.clip(old_pos, min_bounds, max_bounds)
             map.move(ent, ticks)
             np.testing.assert_allclose(ent.pos, old_pos)
 
@@ -137,15 +174,16 @@ def test_pickup_boost():
     assert len(map.pacman_boosts) == 0
 
     # Pick up ghost boost
-    map.move(pacman, 4)
-    map.move(ghost, 4)
+    ticks = 4 / ghost.speed
+    map.move(pacman, ticks)
+    map.move(ghost, ticks)
     assert len(map.ghost_boosts) == 1
     assert len(map.pacman_boosts) == 1
 
     # Pick up pacman boost
     ghost.face(-ghost.direction)
     pacman.face(-pacman.direction)
-    map.move(ghost, 4)
-    map.move(pacman, 4)
+    map.move(ghost, ticks)
+    map.move(pacman, ticks)
     assert len(map.ghost_boosts) == 1
     assert len(map.pacman_boosts) == 0

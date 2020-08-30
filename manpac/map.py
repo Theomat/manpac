@@ -16,17 +16,20 @@ def __find_first_unwalkable__(map, considered_pos, speed, v, ticks):
         times += 1
     # Not enough time
     if times - 1 >= speed * ticks:
-        return considered_pos
-    return unwalkable
+        return considered_pos, True
+    return unwalkable, False
+
 
 def __find_first_walkable__(map, considered_pos, size, speed, v, ticks):
-    unwalkables = __find_first_unwalkable__(map, considered_pos, speed, v, ticks)
+    unwalkables, timeout = __find_first_unwalkable__(map, considered_pos, speed, v, ticks)
     for unwalkable in unwalkables:
-        walkable = np.clip(unwalkable, size, map.max_bounds - size)
-        if not map.is_walkable(walkable.astype(dtype=np.int)):
-            to_out = np.abs(walkable - walkable.astype(dtype=np.int))
-            walkable -= v * (to_out + size)
+        walkable = unwalkable.astype(dtype=np.float)
+        if not timeout:
+            walkable += .5
+            walkable -= v * 1
+            walkable += v * (size - .5)
         yield walkable
+    return []
 
 
 @export
@@ -129,25 +132,35 @@ class Map():
             return False
         return Cell(self[pos]).walkable
 
-    def closest_walkable(self, pos):
+    def closest_walkable(self, src):
         """
+        Find the closest walkable cell from src.
+
+        Parameters
+        -----------
+        - *src*: (**numpy.ndarray**)
+            the source position
+
+        Return
+        -----------
+        The closest walkable cell from src.
+        type: **numpy.ndarray**
         """
         closest = None
         distance = 1e10
 
-        considered_pos = [pos.astype(dtype=np.int)]
+        considered_pos = [np.round(src)]
         while closest is None:
             new_considered_pos = []
             for pos in considered_pos:
-                for direction in Direction:
-                    new_pos = pos + direction.vector
-                    if not self.is_walkable(new_pos):
-                        new_considered_pos.append(new_pos)
-                    else:
-                        dist = np.sum(np.square(pos - new_pos))
-                        if dist < distance:
-                            distance = dist
-                            closest = new_pos
+                if not self.is_walkable(pos.astype(dtype=np.int)):
+                    for direction in Direction:
+                        new_considered_pos.append(pos + direction.vector)
+                else:
+                    dist = np.sum(np.square(src - pos))
+                    if dist < distance:
+                        distance = dist
+                        closest = pos
             considered_pos = new_considered_pos
         return closest
 
@@ -175,15 +188,20 @@ class Map():
             # Finds first unwalkable tile
             cases_where_entity = []
             for direction in Direction:
-                coord = self.closest_walkable(entity.pos + direction.vector)
-                if entity.squared_distance_to(coord) <= entity.size**2:
-                    cases_where_entity.append(coord)
+                position = entity.pos + direction.vector * entity.size * .99
+                coord = position.astype(dtype=np.int)
+                cases_where_entity.append(coord)
             walkables = __find_first_walkable__(self, cases_where_entity, entity.size, speed, v, ticks)
-
             # Now walkable is target coordinates
-            maxi = ticks if walkables else 0
+            maxi = -1
             for walkable in walkables:
-                maxi = min(np.max(np.abs(walkable - entity.pos)) / speed, maxi)
+                diff = np.max((walkable - entity.pos) * v)
+                if diff > 0:
+                    if maxi < 0:
+                        maxi = ticks
+                    maxi = min(diff / speed, maxi)
+            if maxi < 0:
+                maxi = 0
 
         # Pick up boosts
         boosts = self.ghost_boosts if entity.type is EntityType.GHOST else self.pacman_boosts

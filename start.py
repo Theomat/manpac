@@ -23,13 +23,10 @@ pacman.attach(TargetSeekerController(game))
 
 
 map = Map((40, 40))
-map[0,1] = Cell.WALL
 for i in range(30):
     map[np.random.randint(0, 40 - 1, 2)] = Cell.WALL
 map.spawns[EntityType.GHOST] = np.array([20, 20])
 map.spawns[EntityType.PACMAN] = np.array([1, 1])
-
-
 
 
 interface = Interface(game)

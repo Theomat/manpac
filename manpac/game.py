@@ -5,7 +5,7 @@ from manpac.entity_type import EntityType
 import numpy as np
 
 
-MAX_TICK_UNIT = 1
+MAX_TICK_UNIT = .5
 
 
 @export

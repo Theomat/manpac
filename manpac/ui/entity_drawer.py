@@ -3,6 +3,8 @@ from manpac.direction import Direction
 
 import pygame
 
+DEBUG_COLLISION_BOX = False
+
 
 _IMAGE_SET_ = {
     EntityType.GHOST: ["b1", "b2", "d1", "d2", "g1", "g2", "h1", "h2"],
@@ -50,7 +52,13 @@ class EntityDrawer():
             return
         pos = (self.entity.pos - self.entity.size) * self.scale
         current_sprite = self.sprites[self.last_direction][self.sprite_index]
+
+        cell_size = self.scale
         display.blit(current_sprite, (round(pos[0]), round(pos[1])))
+        if DEBUG_COLLISION_BOX:
+            pos = self.entity.pos
+            pygame.draw.circle(display, (255, 0, 0),
+                               (round(pos[0] * cell_size), round(pos[1] * cell_size)), round(cell_size * self.entity.size))
 
         if self.entity.direction != self.last_direction:
             self.last_direction = self.entity.direction

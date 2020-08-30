@@ -8,20 +8,14 @@ from manpac.entity_type import EntityType
 from manpac.ui.entity_drawer import EntityDrawer
 
 
-class Interface():
+REFRESH_DELAY = 25
 
-    width, height = 0, 0
-    screen = 0
-    scale = 0
-    time = 0
+
+class Interface():
 
     def __init__(self, game):
         self.game = game
-        pygame.init()
-        pygame.display.set_caption('Manpac')
-        self.screen = pygame.display.set_mode((900, 600))
-        self.time = pygame.time.get_ticks()
-        self.width, self.height = self.screen.get_size()
+        self.scale = 0
 
     def _draw_map_(self):
         cell_size = self.scale
@@ -37,11 +31,20 @@ class Interface():
         for entity_drawer in self.entities_drawer:
             entity_drawer.draw(self.screen)
 
-    def start(self, map):
-        self.game.start(map)
+    def __pygame_init__(self, map):
+        pygame.init()
+        pygame.display.set_caption('Manpac')
+        self.screen = pygame.display.set_mode((1600, 900))
+        self.last_updated = pygame.time.get_ticks()
+        self.width, self.height = self.screen.get_size()
+
         scale_x = self.width / map.width
         scale_y = self.height / map.height
         self.scale = max(1, round(min(scale_x, scale_y)))
+
+    def start(self, map):
+        self.__pygame_init__(map)
+        self.game.start(map)
 
         # Create entity drawer
         self.entities_drawer = []
@@ -61,9 +64,9 @@ class Interface():
                 if event.type == QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     pygame.quit()
                     sys.exit()
-            dt = pygame.time.get_ticks() - self.time
-            if dt >= 17:
-                self.game.update(dt / 17.)
+            dt = pygame.time.get_ticks() - self.last_updated
+            if dt >= REFRESH_DELAY:
+                self.game.update(dt / REFRESH_DELAY)
                 self.draw()
                 pygame.display.update()
-                self.time = pygame.time.get_ticks()
+                self.last_updated = pygame.time.get_ticks()

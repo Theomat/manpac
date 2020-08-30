@@ -8,8 +8,8 @@ from queue import PriorityQueue
 import numpy as np
 
 
-AGGRO_REFRESH = 1
-PATH_REFRESH = 1
+AGGRO_REFRESH = 2
+PATH_REFRESH = 2
 
 
 def find_path(src, dst, map):

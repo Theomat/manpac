@@ -25,9 +25,14 @@ class RandomWalkController(AbstractController):
 
     def update(self, ticks):
         self._dir_duration += ticks
+        # If can not move in that direction anymore, indicate to change direction
+        if not self.game.map.is_walkable(self.entity.map_position + self.entity.direction.vector):
+            self._dir_duration = self.switch_duration + 1
+        # Change direction after some time
         if self._dir_duration > self.switch_duration:
             choices = [dir for dir in Direction
                        if self.game.map.is_walkable(self.entity.map_position + dir.vector)]
-            self.entity.face(random.choice(choices))
+            if choices:
+                self.entity.face(random.choice(choices))
             self.entity.moving = True
             self._dir_duration = 0
