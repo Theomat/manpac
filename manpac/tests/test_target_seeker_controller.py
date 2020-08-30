@@ -26,7 +26,7 @@ def test_static_hunt():
 
     g.start(Map((10, 10)))
     ghost2.teleport(Direction.RIGHT.vector * 3)
-    ghost3.teleport(Direction.BOTTOM.vector * 3)
+    ghost3.teleport(Direction.DOWN.vector * 3)
     assert g.status is GameStatus.ONGOING
     assert g.ghosts == 4
     while g.status is GameStatus.ONGOING:
@@ -53,7 +53,7 @@ def test_random_hunt():
 
     g.start(Map((10, 10)))
     ghost2.teleport(Direction.RIGHT.vector * 3)
-    ghost3.teleport(Direction.BOTTOM.vector * 3)
+    ghost3.teleport(Direction.DOWN.vector * 3)
     assert g.status is GameStatus.ONGOING
     assert g.ghosts == 4
     while g.status is GameStatus.ONGOING:

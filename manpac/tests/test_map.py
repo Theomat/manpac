@@ -128,7 +128,7 @@ def test_pickup_boost():
     pacman.moving = True
     pacman.face(Direction.RIGHT)
 
-    map.ghost_boosts = [[Direction.RIGHT.vector * 2.5, 9999], [Direction.BOTTOM.vector * 3.5, 9999]]
+    map.ghost_boosts = [[Direction.RIGHT.vector * 2.5, 9999], [Direction.DOWN.vector * 3.5, 9999]]
 
     # Pick up nothing
     map.move(pacman, 1)

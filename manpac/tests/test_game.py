@@ -56,7 +56,7 @@ def test_collision_check():
     g = Game(ghost, pacman, ghost2, ghost3, ghost4)
     g.start(Map((10, 10)))
     ghost2.teleport(Direction.RIGHT.vector * 3)
-    ghost3.teleport(Direction.BOTTOM.vector * 3)
+    ghost3.teleport(Direction.DOWN.vector * 3)
     assert g.status is GameStatus.ONGOING
     assert g.ghosts == 4
     g.update(1)
@@ -85,7 +85,7 @@ def test_big_updates():
 
     g.start(Map((10, 10)))
     ghost2.teleport(Direction.RIGHT.vector * 3)
-    ghost3.teleport(Direction.BOTTOM.vector * 3)
+    ghost3.teleport(Direction.DOWN.vector * 3)
     assert g.status is GameStatus.ONGOING
     g.update(1e12)
     assert g.status is GameStatus.FINISHED
