@@ -158,3 +158,22 @@ class Map():
                     self.pacman_boosts.append([loc, t])
         # Actual movement
         entity.move(maxi)
+
+    def print(self, empty=" ", wall="O"):
+        """
+        Print this map to the standard output stream.
+
+        Parameters
+        -----------
+        - *empty*: (**string**)
+            the string used to represent en empty cell
+        - *wall*: (**string**)
+            the string used to represent a wall cell
+        """
+        for y in range(self.height):
+            for x in range(self.width):
+                if self[x, y] == Cell.EMPTY:
+                    print(empty, end="")
+                else:
+                    print(wall, end="")
+            print("")
