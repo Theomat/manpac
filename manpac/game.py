@@ -60,9 +60,9 @@ class Game():
         assert self.status is GameStatus.ONGOING
         self.duration += ticks
 
-        if ticks > MAX_TICK_UNIT:
-            self.update(ticks - MAX_TICK_UNIT)
-            ticks = MAX_TICK_UNIT
+        while ticks > MAX_TICK_UNIT and self.status is GameStatus.ONGOING:
+            self.update(MAX_TICK_UNIT)
+            ticks -= MAX_TICK_UNIT
         # Move entities
         self._move_entities_(ticks)
         # Update entities

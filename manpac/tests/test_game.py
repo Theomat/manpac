@@ -4,6 +4,9 @@ from manpac.map import Map
 from manpac.game import Game
 from manpac.direction import Direction
 from manpac.game_status import GameStatus
+from manpac.controllers.target_seeker_controller import TargetSeekerController
+
+import pytest
 
 
 def test_status():
@@ -63,4 +66,26 @@ def test_collision_check():
     assert g.status is GameStatus.ONGOING
     g.update(5)
     assert g.ghosts == 1
+    assert g.status is GameStatus.FINISHED
+
+
+@pytest.mark.timeout(5)
+def test_big_updates():
+    ghost = Entity(EntityType.GHOST)
+    ghost2 = Entity(EntityType.GHOST)
+    ghost3 = Entity(EntityType.GHOST)
+    ghost4 = Entity(EntityType.GHOST)
+    pacman = Entity(EntityType.PACMAN)
+    ghost2.moving = False
+
+    g = Game(ghost, pacman, ghost2, ghost3, ghost4)
+
+    controller = TargetSeekerController(g)
+    pacman.attach(controller)
+
+    g.start(Map((10, 10)))
+    ghost2.teleport(Direction.RIGHT.vector * 3)
+    ghost3.teleport(Direction.BOTTOM.vector * 3)
+    assert g.status is GameStatus.ONGOING
+    g.update(1e12)
     assert g.status is GameStatus.FINISHED
