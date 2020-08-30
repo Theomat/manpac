@@ -26,7 +26,7 @@ Once a power-up is picked up or disappear, a pac-man power-up spawns at the same
 
 ## Dependencies
 
-- python >= 3.6
+- python=3.5
 - [numpy](https://numpy.org/)
 - [pygame](https://www.pygame.org/)
 - [pytest](https://github.com/pytest-dev/pytest/)
@@ -34,7 +34,9 @@ Once a power-up is picked up or disappear, a pac-man power-up spawns at the same
 
 You can easily create an environment with the right dependencies:
 ```bash
-conda create --name manpac python>=3.6 numpy pygame pytest pytest-timeout
+conda create --name manpac python=3.5 numpy pytest pytest-timeout
+conda activate manpac
+conda install -c cogsci pygame
 ```
 
 ## Branches
