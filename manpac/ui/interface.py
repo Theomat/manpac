@@ -24,6 +24,9 @@ class Interface():
                 if self.game.map[i, j] == Cell.WALL:
                     pygame.draw.rect(self.screen, (0, 0, 255),
                                      (i*cell_size, j*cell_size, cell_size, cell_size))
+                elif self.game.map[i, j] == Cell.DEBUG:
+                    pygame.draw.rect(self.screen, (255, 0, 0),
+                                     (i*cell_size, j*cell_size, cell_size, cell_size))
 
     def draw(self):
         self.screen.fill((0, 0, 0))
