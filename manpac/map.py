@@ -164,6 +164,51 @@ class Map():
             considered_pos = new_considered_pos
         return closest
 
+    def how_far(self, entity, max_distance):
+        """
+        Return how far the specified entity can move in their current direction.
+
+        Parameters
+        -----------
+        - *entity*: (**Entity**)
+            the entity to be considered
+        - *max_distance*: (**float**)
+            the maximum distance to be considered
+
+        Return
+        ----------
+        The maximum distance the specified entity can continue in their direction before being blocked.
+        type: **float**
+        """
+        speed = entity.speed
+        if speed <= 0:
+            return 0
+        v = entity.direction.vector
+        intangible = not entity.is_tangible
+        maxi = 0
+        if intangible:
+            next = np.clip(entity.pos + v * (max_distance + entity.size), 0, self.max_bounds)
+            maxi = min(np.max(np.abs(next - entity.pos)) / speed, max_distance)
+        else:
+            # Finds first unwalkable tile
+            cases_where_entity = []
+            for direction in Direction:
+                position = entity.pos + direction.vector * entity.size * .99
+                coord = position.astype(dtype=np.int)
+                cases_where_entity.append(coord)
+            walkables = __find_first_walkable__(self, cases_where_entity, entity.size, 1, v, max_distance)
+            # Now walkable is target coordinates
+            maxi = -1
+            for walkable in walkables:
+                diff = np.max((walkable - entity.pos) * v)
+                if diff > 0:
+                    if maxi < 0:
+                        maxi = max_distance
+                    maxi = min(diff, maxi)
+            if maxi < 0:
+                maxi = 0
+        return maxi
+
     def move(self, entity, ticks):
         """
         Move the specified entity on this map for the specified number of ticks.
@@ -178,30 +223,9 @@ class Map():
         speed = entity.speed
         if speed <= 0:
             return
+        max_distance = self.how_far(entity, ticks * speed)
+        maxi = max_distance / speed
         v = entity.direction.vector
-        intangible = not entity.is_tangible
-        maxi = 0
-        if intangible:
-            next = np.clip(entity.pos + v * (ticks + entity.size), 0, self.max_bounds)
-            maxi = min(np.max(np.abs(next - entity.pos)) / speed, ticks)
-        else:
-            # Finds first unwalkable tile
-            cases_where_entity = []
-            for direction in Direction:
-                position = entity.pos + direction.vector * entity.size * .99
-                coord = position.astype(dtype=np.int)
-                cases_where_entity.append(coord)
-            walkables = __find_first_walkable__(self, cases_where_entity, entity.size, speed, v, ticks)
-            # Now walkable is target coordinates
-            maxi = -1
-            for walkable in walkables:
-                diff = np.max((walkable - entity.pos) * v)
-                if diff > 0:
-                    if maxi < 0:
-                        maxi = ticks
-                    maxi = min(diff / speed, maxi)
-            if maxi < 0:
-                maxi = 0
 
         # Pick up boosts
         boosts = self.ghost_boosts if entity.type is EntityType.GHOST else self.pacman_boosts
