@@ -10,7 +10,8 @@ class Cell(IntEnum):
     """
     EMPTY = 0
     WALL = 1
+    DEBUG = 2
 
     @property
     def walkable(self):
-        return self is Cell.EMPTY
+        return self is not Cell.WALL
