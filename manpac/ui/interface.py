@@ -23,27 +23,41 @@ class Interface():
             for j in range(self.game.map.height):
                 if self.game.map[i, j] == Cell.WALL:
                     pygame.draw.rect(self.screen, (0, 0, 255),
-                                     (i*cell_size, j*cell_size, cell_size, cell_size))
+                                     (i*cell_size+int(self.width/2), j*cell_size, cell_size, cell_size))
                 elif self.game.map[i, j] == Cell.DEBUG:
                     pygame.draw.rect(self.screen, (255, 0, 0),
-                                     (i*cell_size, j*cell_size, cell_size, cell_size))
+                                     (i*cell_size+int(self.width/2), j*cell_size, cell_size, cell_size))
+
+    def draw_boost(self):
+        for boost_list in self.map.ghost_boosts:
+            print(boost_list[0])
+            self.screen.blit(self.ghost_boost,(boost_list[0][0]*self.scale+int(self.width/2),boost_list[0][1]*self.scale))
+        for boost_list in self.map.pacman_boosts:
+            self.screen.blit(self.pacman_boost,(boost_list[0][0]*self.scale+int(self.width/2),boost_list[0][1]*self.scale))
 
     def draw(self):
         self.screen.fill((0, 0, 0))
         self._draw_map_()
+        self.draw_boost()
         for entity_drawer in self.entities_drawer:
             entity_drawer.draw(self.screen)
 
     def __pygame_init__(self, map):
         pygame.init()
         pygame.display.set_caption('Manpac')
-        self.screen = pygame.display.set_mode((1600, 900))
+        self.screen = pygame.display.set_mode((900, 600))
         self.last_updated = pygame.time.get_ticks()
         self.width, self.height = self.screen.get_size()
-
+        self.width = int(self.width / 2)
         scale_x = self.width / map.width
         scale_y = self.height / map.height
         self.scale = max(1, round(min(scale_x, scale_y)))
+        self.map = map
+        if not map.boost_generator:
+            self.ghost_boost = pygame.image.load("assets/interro.png").convert()
+            self.ghost_boost = pygame.transform.scale(self.ghost_boost, (self.scale, self.scale))
+            self.pacman_boost = pygame.image.load("assets/excla.png").convert()
+            self.pacman_boost = pygame.transform.scale(self.pacman_boost, (self.scale, self.scale))
 
     def start(self, map):
         self.__pygame_init__(map)
@@ -58,7 +72,7 @@ class Interface():
             else:
                 name = "ghost{}".format(ghost)
                 ghost += 1
-            drawer = EntityDrawer(entity, self.scale, name)
+            drawer = EntityDrawer(entity, self.scale, name, ghost)
             self.entities_drawer.append(drawer)
 
         # Loop

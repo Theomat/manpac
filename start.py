@@ -6,6 +6,7 @@ from manpac.cell import Cell
 from manpac.controllers.random_walk_controller import RandomWalkController
 from manpac.controllers.target_seeker_controller import TargetSeekerController
 from manpac.controllers.human_controller import HumanController
+from manpac.controllers.walk_away_controller import WalkAwayController
 from manpac.map import Map
 from manpac.maps.map_pacman import *
 
@@ -25,7 +26,8 @@ for ghost in ghosts:
         ghost.attach(HumanController(game))
         n = False
     else:
-        ghost.attach(RandomWalkController(game, 60 * 2))
+        ghost.attach(WalkAwayController(game,60*2))
+        #ghost.attach(RandomWalkController(game, 60 * 2))
 pacman.attach(TargetSeekerController(game))
 
 #map = Map((40, 40))
@@ -34,7 +36,7 @@ pacman.attach(TargetSeekerController(game))
 #map.spawns[EntityType.GHOST] = np.array([20, 20])
 #map.spawns[EntityType.PACMAN] = np.array([1, 1])
 
-map = man_pacman()
+map = man_pacman(game)
 
 interface = Interface(game)
 interface.start(map)

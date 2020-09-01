@@ -1,11 +1,14 @@
 from manpac.entity_type import EntityType
 from manpac.cell import Cell
 from manpac.map import Map
+from manpac.modifiers.speed_modifier import SpeedModifier
+from manpac.boost_generators.simple_boost_generator import SimpleBoostGenerator
 
 import numpy as np
 
-def man_pacman():
-    map = Map((21,28))
+def man_pacman(game):
+    boost_generator = SimpleBoostGenerator(game,1,[(1,lambda:SpeedModifier(game,10,2))],[(1,lambda:SpeedModifier(game,10,2))])
+    map = Map((21,28),boost_generator=boost_generator)
 
     for i in range(21):
         map[np.array([i,0])] = Cell.WALL
@@ -81,7 +84,7 @@ def man_pacman():
     map[np.array([11,11])] = Cell.WALL
     map[np.array([6,14])] = Cell.WALL
     map[np.array([14,14])] = Cell.WALL
-    map.spawns[EntityType.GHOST] = np.array([10,14])
-    map.spawns[EntityType.PACMAN] = np.array([10, 15])
+    map.spawns[EntityType.GHOST] = np.array([10.5,10.5])
+    map.spawns[EntityType.PACMAN] = np.array([10, 14])
 
     return map

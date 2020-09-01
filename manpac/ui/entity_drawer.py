@@ -29,9 +29,10 @@ _COMBINATIONS_SET_ = {
 
 class EntityDrawer():
 
-    def __init__(self, entity, scale, name):
+    def __init__(self, entity, scale, name, number):
         self.entity = entity
         self.scale = scale
+        self.number = number
 
         s = []
         for postfix in _IMAGE_SET_[entity.type]:
@@ -54,11 +55,13 @@ class EntityDrawer():
         current_sprite = self.sprites[self.last_direction][self.sprite_index]
 
         cell_size = self.scale
-        display.blit(current_sprite, (round(pos[0]), round(pos[1])))
+        if self.entity.type is EntityType.GHOST:
+            display.blit(self.sprites[Direction.RIGHT][0],(0,self.number*cell_size*2))
+        display.blit(current_sprite, (round(pos[0])+int(display.get_size()[0]/4), round(pos[1])))
         if DEBUG_COLLISION_BOX:
             pos = self.entity.pos
             pygame.draw.circle(display, (255, 0, 0),
-                               (round(pos[0] * cell_size), round(pos[1] * cell_size)), round(cell_size * self.entity.size))
+                               (round(pos[0] * cell_size)+int(display.get_size()[0]/4), round(pos[1] * cell_size)), round(cell_size * self.entity.size))
 
         if self.entity.direction != self.last_direction:
             self.last_direction = self.entity.direction
