@@ -72,3 +72,5 @@ class WalkAwayController(AbstractController):
             else:
                 self.entity.moving = False
             self._dir_duration = 0
+
+        self.game.map.move(self.entity, ticks)
