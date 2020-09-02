@@ -25,9 +25,6 @@ class RandomWalkController(AbstractController):
 
     def update(self, ticks):
         self._dir_duration += ticks
-        # If can not move in that direction anymore, indicate to change direction
-        if self.game.map.how_far(self.entity, 1) < self.entity.size:
-            self._dir_duration = self.switch_duration + 1
         # Change direction after some time
         if self._dir_duration > self.switch_duration:
             choices = [dir for dir in Direction
@@ -36,3 +33,11 @@ class RandomWalkController(AbstractController):
                 self.entity.face(random.choice(choices))
             self.entity.moving = True
             self._dir_duration = 0
+        else:
+            speed = self.entity.speed
+            used_ticks = self.game.map.how_far(self.entity, speed * ticks) / speed
+            self.game.map.move(self.entity, used_ticks)
+            if used_ticks < ticks:
+                # Force direction change
+                self._dir_duration = self.switch_duration + 1
+                self.update(ticks-used_ticks)
