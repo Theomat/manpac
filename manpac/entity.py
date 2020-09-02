@@ -24,11 +24,11 @@ class Entity():
         # True if the entity is alive otherwise False
         self.alive = False
         # Default speed in cells / tick
-        self.base_speed = .4
+        self.base_speed = .2
         if type is EntityType.PACMAN:
             self.base_speed *= 1.2
         # Their size (radius) in cells
-        self.size = .5
+        self.size = .3
         # True if entity is moving otherwise False
         self.moving = False
         # Their current facing direction
@@ -59,7 +59,7 @@ class Entity():
         The map position of this entity.
         type: **numpy.ndarray**, dtype=numpy.int
         """
-        return self.pos.astype(dtype=np.int)
+        return np.floor(self.pos).astype(dtype=np.int)
 
     @property
     def speed(self):
@@ -165,6 +165,7 @@ class Entity():
         """
         if not self.holding:
             self.holding = modifier
+            modifier.on_pickup(self)
 
     def use_modifier(self):
         """
@@ -172,7 +173,7 @@ class Entity():
         """
         if self.holding:
             self.modifiers.append(self.holding)
-            self.holding.use()
+            self.holding.use(self)
             self.holding = None
 
     @property
