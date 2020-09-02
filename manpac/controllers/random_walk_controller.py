@@ -18,7 +18,7 @@ class RandomWalkController(AbstractController):
         the number of ticks before it changes direction
     """
 
-    def __init__(self, game, switch_duration):
+    def __init__(self, game, switch_duration=60):
         super(RandomWalkController, self).__init__(game)
         self._dir_duration = switch_duration + 1
         self.switch_duration = switch_duration
@@ -41,3 +41,4 @@ class RandomWalkController(AbstractController):
                 # Force direction change
                 self._dir_duration = self.switch_duration + 1
                 self.update(ticks-used_ticks)
+        self.entity.use_modifier()
