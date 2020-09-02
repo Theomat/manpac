@@ -48,20 +48,25 @@ class EntityDrawer():
         self.sprite_index = 0
         self.last_direction = entity.direction
 
+    def draw_icon(self, display):
+        if not self.entity.alive:
+            return
+        cell_size = self.scale
+        if self.entity.type is EntityType.GHOST:
+            display.blit(self.sprites[Direction.RIGHT][0], (0, self.number * cell_size * 2))
+
     def draw(self, display):
         if not self.entity.alive:
             return
         pos = (self.entity.pos - self.entity.size) * self.scale
         current_sprite = self.sprites[self.last_direction][self.sprite_index]
 
-        cell_size = self.scale
-        if self.entity.type is EntityType.GHOST:
-            display.blit(self.sprites[Direction.RIGHT][0],(0,self.number*cell_size*2))
-        display.blit(current_sprite, (round(pos[0])+int(display.get_size()[0]/4), round(pos[1])))
+        display.blit(current_sprite, (round(pos[0]), round(pos[1])))
         if DEBUG_COLLISION_BOX:
             pos = self.entity.pos
+            cell_size = self.scale
             pygame.draw.circle(display, (255, 0, 0),
-                               (round(pos[0] * cell_size)+int(display.get_size()[0]/4), round(pos[1] * cell_size)), round(cell_size * self.entity.size))
+                               (round(pos[0] * cell_size), round(pos[1] * cell_size)), round(cell_size * self.entity.size))
 
         if self.entity.direction != self.last_direction:
             self.last_direction = self.entity.direction
