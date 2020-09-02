@@ -1,4 +1,5 @@
 from manpac.utils import export
+from manpac.entity_type import EntityType
 
 from abc import ABC
 
@@ -91,7 +92,8 @@ class AbstractModifier(ABC):
         pass
 
     def on_pickup(self, entity):
-        pass
+        if entity.type is EntityType.PACMAN:
+            entity.use_modifier()
 
     def update(self, ticks):
         """
