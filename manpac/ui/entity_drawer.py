@@ -34,6 +34,10 @@ class EntityDrawer():
         self.scale = scale
         self.number = number
 
+        if self.entity.type is EntityType.GHOST:
+            self.icon_sprite = pygame.image.load("assets/{}d1.png".format(name)).convert()
+            self.icon_sprite = pygame.transform.scale(self.icon_sprite, (scale, scale))
+
         s = []
         for postfix in _IMAGE_SET_[entity.type]:
             sprite = pygame.image.load("assets/{}{}.png".format(name, postfix)).convert()
@@ -53,7 +57,7 @@ class EntityDrawer():
             return
         cell_size = self.scale
         if self.entity.type is EntityType.GHOST:
-            display.blit(self.sprites[Direction.RIGHT][0], (0, self.number * cell_size * 2))
+            display.blit(self.icon_sprite, (0, self.number * cell_size * 2))
 
     def draw(self, display):
         if not self.entity.alive:
