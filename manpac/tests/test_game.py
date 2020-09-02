@@ -43,32 +43,6 @@ def test_collision_resolution():
     assert pacman.squared_distance_to(pacman2.pos) >= (pacman2.size + pacman.size)**2
 
 
-def test_collision_check():
-    ghost = Entity(EntityType.GHOST)
-    ghost2 = Entity(EntityType.GHOST)
-    ghost3 = Entity(EntityType.GHOST)
-    ghost4 = Entity(EntityType.GHOST)
-    pacman = Entity(EntityType.PACMAN)
-    pacman.moving = True
-    ghost2.moving = False
-    pacman.face(Direction.RIGHT)
-
-    g = Game(ghost, pacman, ghost2, ghost3, ghost4)
-    g.start(Map((10, 10)))
-    ghost2.teleport(Direction.RIGHT.vector * 3)
-    ghost3.teleport(Direction.DOWN.vector * 3)
-    assert g.status is GameStatus.ONGOING
-    assert g.ghosts == 4
-    g.update(1)
-    assert g.ghosts == 2
-    assert g.status is GameStatus.ONGOING
-    g.update(1)
-    assert g.status is GameStatus.ONGOING
-    g.update(5)
-    assert g.ghosts == 1
-    assert g.status is GameStatus.FINISHED
-
-
 @pytest.mark.timeout(5)
 def test_big_updates():
     ghost = Entity(EntityType.GHOST)
