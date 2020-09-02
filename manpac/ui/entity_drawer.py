@@ -1,10 +1,5 @@
 from manpac.entity_type import EntityType
 from manpac.direction import Direction
-from manpac.modifiers.abstract_modifier import AbstractModifier
-from manpac.modifiers.swap_modifier import SwapModifier
-from manpac.modifiers.speed_modifier import SpeedModifier
-from manpac.modifiers.intangible_modifier import IntangibleModifier
-from manpac.modifiers.ghost_block_modifier import GhostBlockModifier
 
 
 import pygame
@@ -35,11 +30,11 @@ _COMBINATIONS_SET_ = {
 
 class EntityDrawer():
 
-    def __init__(self, entity, scale, name, number, boost_list):
+    def __init__(self, entity, scale, name, number, boost_dict):
         self.entity = entity
         self.scale = scale
         self.number = number
-        self.boost_list = boost_list
+        self.boost_dict = boost_dict
         self.blink = True
 
         if self.entity.type is EntityType.GHOST:
@@ -60,15 +55,10 @@ class EntityDrawer():
         self.sprite_index = 0
         self.last_direction = entity.direction
 
-    def draw_modifier(self,display,modifier,nb_boost):
-        if isinstance(modifier,SpeedModifier):
-            display.blit(self.boost_list[2], (nb_boost * self.scale, self.number * self.scale * 2))
-        if isinstance(modifier,SwapModifier):
-            display.blit(self.boost_list[0], (nb_boost * self.scale, self.number * self.scale * 2))
-        if isinstance(modifier,GhostBlockModifier):
-            display.blit(self.boost_list[1], (nb_boost * self.scale, self.number * self.scale * 2))
-        if isinstance(modifier,IntangibleModifier):
-            display.blit(self.boost_list[3], (nb_boost * self.scale, self.number * self.scale * 2))
+    def draw_modifier(self, display, modifier, nb_boost):
+        for modifierCls, sprite in self.boost_dict.items():
+            if isinstance(modifier, modifierCls):
+                display.blit(sprite, (nb_boost * self.scale, self.number * self.scale * 2))
 
     def draw_icon(self, display):
         if not self.entity.alive:
@@ -77,16 +67,14 @@ class EntityDrawer():
         if self.entity.type is EntityType.GHOST:
             nb_boost = 1
             display.blit(self.icon_sprite, (0, self.number * cell_size * 2))
-            self.draw_modifier(display,self.entity.holding,nb_boost)
+            self.draw_modifier(display, self.entity.holding, nb_boost)
             if self.blink:
                 for boost in self.entity.modifiers:
                     nb_boost += 1
-                    self.draw_modifier(display,boost,nb_boost)
+                    self.draw_modifier(display, boost, nb_boost)
                 self.blink = False
             else:
                 self.blink = True
-
-
 
     def draw(self, display):
         if not self.entity.alive:
