@@ -23,7 +23,7 @@ class TargetSeekerController(AbstractController):
         the game this controller is being used in
     """
 
-    def __init__(self, game, aggro_refresh=10, path_refresh=60):
+    def __init__(self, game, aggro_refresh=5, path_refresh=20):
         super(TargetSeekerController, self).__init__(game)
         self.entity = None
         self.aggro = None
