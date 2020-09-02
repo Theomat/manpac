@@ -264,8 +264,8 @@ class Map():
         intangible = not entity.is_tangible
         maxi = 0
         if intangible:
-            next = np.clip(entity.pos + v * (max_distance + entity.size), 0, self.max_bounds)
-            maxi = min(np.max(np.abs(next - entity.pos)) / speed, max_distance)
+            next = np.clip(entity.pos + v * max_distance, entity.size, self.max_bounds + 1 - entity.size)
+            maxi = min(np.max(v * (next - entity.pos)) / speed, max_distance)
         else:
             # Finds first unwalkable tile
             cases_where_entity = []
