@@ -35,12 +35,12 @@ class EntityDrawer():
         self.number = number
 
         if self.entity.type is EntityType.GHOST:
-            self.icon_sprite = pygame.image.load("assets/{}d1.png".format(name)).convert()
+            self.icon_sprite = pygame.image.load("assets/{}d1.png".format(name)).convert_alpha()
             self.icon_sprite = pygame.transform.scale(self.icon_sprite, (scale, scale))
 
         s = []
         for postfix in _IMAGE_SET_[entity.type]:
-            sprite = pygame.image.load("assets/{}{}.png".format(name, postfix)).convert()
+            sprite = pygame.image.load("assets/{}{}.png".format(name, postfix)).convert_alpha()
             sprite = pygame.transform.scale(sprite, (int(scale * (2 * entity.size)), int(scale * (2 * entity.size))))
             s.append(sprite)
 

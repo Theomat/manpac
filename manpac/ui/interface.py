@@ -67,9 +67,9 @@ class Interface():
         self.ty = (self.height - self.scale * map.height) // 2
         self.map = map
         if map.boost_generator:
-            self.ghost_boost = pygame.image.load("assets/interro.png").convert()
+            self.ghost_boost = pygame.image.load("assets/interro.png").convert_alpha()
             self.ghost_boost = pygame.transform.scale(self.ghost_boost, (self.scale, self.scale))
-            self.pacman_boost = pygame.image.load("assets/excla.png").convert()
+            self.pacman_boost = pygame.image.load("assets/excla.png").convert_alpha()
             self.pacman_boost = pygame.transform.scale(self.pacman_boost, (self.scale, self.scale))
 
     def start(self, map):
