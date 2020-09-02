@@ -38,13 +38,13 @@ class Game():
         self.duration = 0
         self.ghosts = 0
         for entity in self.entities:
-            # Teleport entities at spawn points
-            entity.teleport(self.map.spawns[entity.type])
             # Make them alive
             entity.alive = True
             # Count ghosts
             if entity.type is EntityType.GHOST:
                 self.ghosts += 1
+        # Spawn entities
+        self.map.spawn_entities(*self.entities)
         # Update status
         self.status = GameStatus.ONGOING if self.ghosts > 1 else GameStatus.FINISHED
 
@@ -63,8 +63,6 @@ class Game():
         while ticks > MAX_TICK_UNIT and self.status is GameStatus.ONGOING:
             self.update(MAX_TICK_UNIT)
             ticks -= MAX_TICK_UNIT
-        # Move entities
-        self._move_entities_(ticks)
         # Update entities
         for entity in self.entities:
             entity.update(ticks)
@@ -75,11 +73,6 @@ class Game():
         # Update status
         if self.ghosts <= 1:
             self.status = GameStatus.FINISHED
-
-    def _move_entities_(self, ticks):
-        # Move entities
-        for entity in self.entities:
-            self.map.move(entity, ticks)
 
     def _check_collisions_(self):
         cpy = self.entities[:]
