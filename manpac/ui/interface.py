@@ -10,6 +10,7 @@ from manpac.ui.entity_drawer import EntityDrawer
 
 REFRESH_DELAY = 25
 
+boost_list = ["swap","theghost","speed","diamond"]
 
 class Interface():
 
@@ -66,11 +67,15 @@ class Interface():
         self.tx = (self.width - self.scale * map.width) // 2
         self.ty = (self.height - self.scale * map.height) // 2
         self.map = map
+        self.boost_list = []
         if map.boost_generator:
             self.ghost_boost = pygame.image.load("assets/interro.png").convert_alpha()
             self.ghost_boost = pygame.transform.scale(self.ghost_boost, (self.scale, self.scale))
             self.pacman_boost = pygame.image.load("assets/excla.png").convert_alpha()
             self.pacman_boost = pygame.transform.scale(self.pacman_boost, (self.scale, self.scale))
+        for boost_type in boost_list:
+            boost_image = pygame.image.load("assets/{}.png".format(boost_type)).convert_alpha()
+            self.boost_list.append(pygame.transform.scale(boost_image, (self.scale, self.scale)))
 
     def start(self, map):
         self.__pygame_init__(map)
@@ -85,7 +90,7 @@ class Interface():
             else:
                 name = "ghost{}".format(ghost)
                 ghost += 1
-            drawer = EntityDrawer(entity, self.scale, name, ghost)
+            drawer = EntityDrawer(entity, self.scale, name, ghost, self.boost_list)
             self.entities_drawer.append(drawer)
 
         # Loop

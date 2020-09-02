@@ -28,7 +28,7 @@ class Entity():
         if type is EntityType.PACMAN:
             self.base_speed *= 1.2
         # Their size (radius) in cells
-        self.size = .3
+        self.size = .35
         # True if entity is moving otherwise False
         self.moving = False
         # Their current facing direction
