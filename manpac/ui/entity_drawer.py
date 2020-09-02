@@ -82,6 +82,9 @@ class EntityDrawer():
                 for boost in self.entity.modifiers:
                     nb_boost += 1
                     self.draw_modifier(display,boost,nb_boost)
+                self.blink = False
+            else:
+                self.blink = True
 
 
 
