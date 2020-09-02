@@ -13,25 +13,40 @@ class HumanController(AbstractController):
     -----------
     - *game*: (**Game**)
         the game this controller is being used in
+    - *left*: (**pygame key int**)
+        the key that will be used to face left direction
+    - *right*: (**pygame key int**)
+        the key that will be used to face right direction
+    - *down*: (**pygame key int**)
+        the key that will be used to face down direction
+    - *up*: (**pygame key int**)
+        the key that will be used to face up direction
+    - *boost*: (**pygame key int**)
+        the key that will be used to face boost direction
     """
 
-    def __init__(self, game):
+    def __init__(self, game, left=pygame.K_LEFT, right=pygame.K_RIGHT, down=pygame.K_DOWN, up=pygame.K_UP, boost=pygame.K_SPACE):
         super(HumanController, self).__init__(game)
+        self.left = left
+        self.right = right
+        self.up = up
+        self.down = down
+        self.boost = boost
 
     def update(self, ticks):
         my_direction = None
         #  List all the key and the pressed key are true
         L = pygame.key.get_pressed()
-        if L[pygame.K_RIGHT]:
+        if L[self.right]:
             my_direction = Direction.RIGHT
-        elif L[pygame.K_LEFT]:
+        elif L[self.left]:
             my_direction = Direction.LEFT
-        elif L[pygame.K_UP]:
+        elif L[self.up]:
             my_direction = Direction.UP
-        elif L[pygame.K_DOWN]:
+        elif L[self.down]:
             my_direction = Direction.DOWN
 
-        if L[pygame.K_SPACE]:
+        if L[self.boost]:
             self.entity.use_modifier()
         # Indicate the direction and move if a key is pressed
         if my_direction is not None:
