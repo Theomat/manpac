@@ -144,13 +144,17 @@ class Entity():
             the number of ticks elapsed
         """
         new_modifiers = []
+        dead_modifiers = []
         for modifier in self.modifiers:
             modifier.update(ticks)
             if modifier.alive:
                 new_modifiers.append(modifier)
             else:
-                modifier.on_death(self)
+                dead_modifiers.append(modifier)
+
         self.modifiers = new_modifiers
+        for modifier in dead_modifiers:
+            modifier.on_death(self)
         if self.controller:
             self.controller.update(ticks)
 
