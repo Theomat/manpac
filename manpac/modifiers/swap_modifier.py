@@ -17,7 +17,7 @@ class SwapModifier(AbstractModifier):
         closest = None
         distance = 1e12
         for entity in self.game.entities:
-            d = caster.squared_distance_to(entity)
+            d = caster.squared_distance_to(entity.pos)
             if d > 0 and d <= self.range * self.range and d <= distance:
                 distance = d
                 closest = entity
