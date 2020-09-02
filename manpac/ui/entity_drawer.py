@@ -5,6 +5,7 @@ from manpac.direction import Direction
 import pygame
 
 DEBUG_COLLISION_BOX = False
+BLINK_RATE = 4  # Number of frames before it changes state
 
 
 _IMAGE_SET_ = {
@@ -35,12 +36,16 @@ class EntityDrawer():
         self.scale = scale
         self.number = number
         self.boost_dict = boost_dict
-        self.blink = True
 
+        self.blink_counter = 0
+        self.blink_state = True  # True if visible otherwise invisible
+
+        # Load icon
         if self.entity.type is EntityType.GHOST:
             self.icon_sprite = pygame.image.load("assets/{}d1.png".format(name)).convert_alpha()
             self.icon_sprite = pygame.transform.scale(self.icon_sprite, (scale, scale))
 
+        # Load entity sprites
         s = []
         for postfix in _IMAGE_SET_[entity.type]:
             sprite = pygame.image.load("assets/{}{}.png".format(name, postfix)).convert_alpha()
@@ -68,13 +73,16 @@ class EntityDrawer():
             nb_boost = 1
             display.blit(self.icon_sprite, (0, self.number * cell_size * 2))
             self.draw_modifier(display, self.entity.holding, nb_boost)
-            if self.blink:
+            # Update mdofifier blink state
+            self.blink_counter += 1
+            if self.blink_counter >= BLINK_RATE:
+                self.blink_counter = 0
+                self.blink_state = not self.blink_state
+            # Draw if currently visible
+            if self.blink_state:
                 for boost in self.entity.modifiers:
                     nb_boost += 1
                     self.draw_modifier(display, boost, nb_boost)
-                self.blink = False
-            else:
-                self.blink = True
 
     def draw(self, display):
         if not self.entity.alive:
