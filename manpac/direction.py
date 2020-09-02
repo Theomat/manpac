@@ -35,3 +35,47 @@ class Direction(Enum):
         if isinstance(o, Direction):
             return self.value < o.value
         return self.value < o
+
+    def rot90(self, n=1):
+        """
+        Return this direction rotated 90° clockwise n times.
+
+        Parameters
+        -----------
+        - *n*: (**int**)
+            the number of rotations that should be made
+        Return
+        -----------
+        The corresponding direction.
+        type: **Direction**
+        """
+        n = n & 3  # modulo 4
+        if n == 0:
+            return self
+        next = self
+        if self is Direction.LEFT:
+            next = Direction.UP
+        elif self is Direction.UP:
+            next = Direction.RIGHT
+        elif self is Direction.RIGHT:
+            next = Direction.DOWN
+        elif self is Direction.DOWN:
+            next = Direction.LEFT
+        return next.rot90(n-1)
+
+    @classmethod
+    def representing(cls, vector):
+        """
+        Return the list of directions that can be positive linear sum of the specified vector.
+
+        Parameters
+        -----------
+        - *vector*: (**numpy.ndarray**)
+            the vector to be used
+
+        Return
+        -----------
+        A list of direction.
+        type: **Direction list**
+        """
+        return [d for d in Direction if np.max(d.vector * vector) > 0]
