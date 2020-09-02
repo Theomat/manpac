@@ -2,6 +2,9 @@ from manpac.entity_type import EntityType
 from manpac.cell import Cell
 from manpac.map import Map
 from manpac.modifiers.speed_modifier import SpeedModifier
+from manpac.modifiers.swap_modifier import SwapModifier
+from manpac.modifiers.ghost_block_modifier import GhostBlockModifier
+from manpac.modifiers.intangible_modifier import IntangibleModifier
 from manpac.boost_generators.simple_boost_generator import SimpleBoostGenerator
 import manpac.maps.map_builder as build
 
@@ -11,9 +14,12 @@ import numpy as np
 class MapPacman(Map):
 
     def __init__(self, game):
-        ghost_factory = [(1, lambda:SpeedModifier(game, 3 * 60, 2))]
-        pacman_factory = [(1, lambda:SpeedModifier(game, 3 * 60, 2))]
-        boost_generator = SimpleBoostGenerator(game, .01, ghost_factory, pacman_factory)
+        ghost_factory = [(1, lambda:SpeedModifier(game, 2 * 60, 2)),
+                         (1, lambda:SwapModifier(game, 10)),
+                         (1, lambda:GhostBlockModifier(game, 2 * 60)),
+                         (1, lambda:IntangibleModifier(game, 2 * 60))]
+        pacman_factory = [(1, lambda:SpeedModifier(game, 2 * 60, 2))]
+        boost_generator = SimpleBoostGenerator(game, .05, ghost_factory, pacman_factory)
         super(MapPacman, self).__init__((21, 28), boost_generator)
 
         # Borders of the map
@@ -87,4 +93,4 @@ class MapPacman(Map):
         self[11, 11] = Cell.WALL
 
         self.spawns[EntityType.GHOST] = np.array([10, 10], dtype=np.int)
-        self.spawns[EntityType.PACMAN] = np.array([10, 16], dtype=np.int)
+        self.spawns[EntityType.PACMAN] = np.array([10, 26], dtype=np.int)
