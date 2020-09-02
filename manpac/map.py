@@ -10,11 +10,11 @@ import numpy as np
 
 def __find_first_unwalkable__(map, considered_pos, speed, v, ticks):
     times = 0
-    unwalkable = [pos for pos in considered_pos if not map.is_walkable(pos.astype(dtype=np.int))]
+    unwalkable = [pos for pos in considered_pos if not map.is_walkable(pos)]
     while not unwalkable and times - 1 < speed * ticks:
         for pos in considered_pos:
             pos += v
-        unwalkable = [pos for pos in considered_pos if not map.is_walkable(pos.astype(dtype=np.int))]
+        unwalkable = [pos for pos in considered_pos if not map.is_walkable(pos)]
         times += 1
     # Not enough time
     if times - 1 >= speed * ticks:
