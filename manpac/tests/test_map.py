@@ -159,11 +159,13 @@ def test_pickup_boost():
     ghost.alive = True
     ghost.moving = True
     ghost.face(Direction.RIGHT)
+    ghost.teleport(np.array([.5, .5]))
 
     pacman = Entity(EntityType.PACMAN)
     pacman.alive = True
     pacman.moving = True
     pacman.face(Direction.RIGHT)
+    pacman.teleport(np.array([.5, .5]))
 
     map.ghost_boosts = [[Direction.RIGHT.vector * 2.5, 9999], [Direction.DOWN.vector * 3.5, 9999]]
 
