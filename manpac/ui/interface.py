@@ -21,19 +21,25 @@ class Interface():
         cell_size = self.scale
         for i in range(self.game.map.width):
             for j in range(self.game.map.height):
-                if self.game.map[i, j] == Cell.WALL:
+                cell = self.game.map[i, j]
+                if cell == Cell.WALL:
                     pygame.draw.rect(self.screen, (0, 0, 255),
-                                     (i*cell_size+int(self.width/2), j*cell_size, cell_size, cell_size))
-                elif self.game.map[i, j] == Cell.DEBUG:
+                                     (i*cell_size, j*cell_size, cell_size, cell_size))
+                elif cell == Cell.DEBUG:
                     pygame.draw.rect(self.screen, (255, 0, 0),
-                                     (i*cell_size+int(self.width/2), j*cell_size, cell_size, cell_size))
+                                     (i*cell_size, j*cell_size, cell_size, cell_size))
+                elif cell == Cell.DEBUG_ONCE:
+                    pygame.draw.rect(self.screen, (0, 255, 0),
+                                     (i*cell_size, j*cell_size, cell_size, cell_size))
+                    self.game.map[i, j] = Cell.EMPTY
 
     def draw_boost(self):
-        for boost_list in self.map.ghost_boosts:
-            print(boost_list[0])
-            self.screen.blit(self.ghost_boost,(boost_list[0][0]*self.scale+int(self.width/2),boost_list[0][1]*self.scale))
-        for boost_list in self.map.pacman_boosts:
-            self.screen.blit(self.pacman_boost,(boost_list[0][0]*self.scale+int(self.width/2),boost_list[0][1]*self.scale))
+        for loc, duration in self.map.ghost_boosts:
+            self.screen.blit(self.ghost_boost,
+                             (loc[0]*self.scale, loc[1]*self.scale))
+        for loc, duration in self.map.pacman_boosts:
+            self.screen.blit(self.pacman_boost,
+                             (loc[0]*self.scale, loc[1]*self.scale))
 
     def draw(self):
         self.screen.fill((0, 0, 0))
@@ -41,6 +47,11 @@ class Interface():
         self.draw_boost()
         for entity_drawer in self.entities_drawer:
             entity_drawer.draw(self.screen)
+        copy = self.screen.copy()
+        self.screen.fill((0, 0, 0))
+        self.screen.blit(copy, (self.tx, self.ty))
+        for entity_drawer in self.entities_drawer:
+            entity_drawer.draw_icon(self.screen)
 
     def __pygame_init__(self, map):
         pygame.init()
@@ -48,12 +59,14 @@ class Interface():
         self.screen = pygame.display.set_mode((900, 600))
         self.last_updated = pygame.time.get_ticks()
         self.width, self.height = self.screen.get_size()
-        self.width = int(self.width / 2)
         scale_x = self.width / map.width
         scale_y = self.height / map.height
         self.scale = max(1, round(min(scale_x, scale_y)))
+        # Compute translation offsets
+        self.tx = (self.width - self.scale * map.width) // 2
+        self.ty = (self.height - self.scale * map.height) // 2
         self.map = map
-        if not map.boost_generator:
+        if map.boost_generator:
             self.ghost_boost = pygame.image.load("assets/interro.png").convert()
             self.ghost_boost = pygame.transform.scale(self.ghost_boost, (self.scale, self.scale))
             self.pacman_boost = pygame.image.load("assets/excla.png").convert()
