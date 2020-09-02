@@ -120,7 +120,12 @@ class TargetSeekerController(AbstractController):
         self.entity.moving = True
         speed = self.entity.speed
         distance_done = self.game.map.how_far(self.entity, ticks * speed)
-        if distance_done <= 0:
+        if distance_done <= speed * .1:
+            directions = Direction.representing(self.entity.pos - self.entity.map_position)
+            if directions:
+                self.entity.face(directions[0])
+            ticks_used = self.game.map.move(self.entity, ticks)
+            ticks -= ticks_used
             self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
             self.on_change_path()
 
