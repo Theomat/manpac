@@ -121,11 +121,16 @@ class TargetSeekerController(AbstractController):
         speed = self.entity.speed
         distance_done = self.game.map.how_far(self.entity, ticks * speed)
         if distance_done <= speed * .1:
-            directions = Direction.representing(self.entity.pos - self.entity.map_position)
-            if directions:
+            # Unblock -> center by going in the orthogonal direction
+            directions = Direction.representing(self.entity.map_position + .5 - self.entity.pos)
+            directions = [d for d in directions if d != -self.entity.direction]
+            ticks_used = 1
+            while directions and ticks > 0 and ticks_used > .01:
                 self.entity.face(directions[0])
-            ticks_used = self.game.map.move(self.entity, ticks)
-            ticks -= ticks_used
+                ticks_used = self.game.map.move(self.entity, ticks) / speed
+                ticks -= ticks_used
+                directions = Direction.representing(self.entity.map_position + .5 - self.entity.pos)
+
             self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
             self.on_change_path()
 
