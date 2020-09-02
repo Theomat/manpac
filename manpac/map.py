@@ -2,6 +2,8 @@ from manpac.utils import export
 from manpac.entity_type import EntityType
 from manpac.cell import Cell
 from manpac.direction import Direction
+from queue import PriorityQueue
+
 
 import numpy as np
 
@@ -25,9 +27,9 @@ def __find_first_walkable__(map, considered_pos, size, speed, v, ticks):
     for unwalkable in unwalkables:
         walkable = unwalkable.astype(dtype=np.float)
         if not timeout:
-            walkable += .5
-            walkable -= v * 1
-            walkable += v * (size - .5)
+            walkable -= v * 1       # Go back one case as it unwalkable
+            walkable += .5          # Center position
+            walkable += v * (.5 - size)  # Center relative to entity size
         yield walkable
     return []
 
@@ -52,15 +54,18 @@ class Map():
             self.spawns[type] = np.zeros((2,))
         # The actual terrain
         self.terrain = np.full(shape, Cell.EMPTY)
+        self.path_buffer = np.zeros_like(self.terrain, dtype=np.bool)
         self.max_bounds = np.array(shape) - 1
         # Boost generator
-        self.boost_generator = None
+        self.boost_generator = boost_generator
         # Ghost boosts which are (loc, remaining_duration)
         self.ghost_boosts = []
         # Pacman boosts which are (loc, *)
         self.pacman_boosts = []
-        # Boost livetime
+        # Boost livetime in ticks
         self.boost_duration = 600
+        # Grab size distance of boost
+        self.boost_size = .1
 
     @property
     def width(self):
@@ -100,8 +105,8 @@ class Map():
         # Add new boosts
         if self.boost_generator:
             new_boosts = self.boost_generator.generate(ticks)
-            for boost in new_boosts:
-                self.ghost_boosts.append([boost, self.boost_duration])
+            for loc in new_boosts:
+                self.ghost_boosts.append([loc, self.boost_duration])
 
     def __getitem__(self, key):
         if isinstance(key, np.ndarray):
@@ -164,6 +169,78 @@ class Map():
             considered_pos = new_considered_pos
         return closest
 
+    def spawn_entities(self, *entities):
+        """
+        Spawn the specified entities on this map.
+
+        Parameters
+        -----------
+        - *entities*: (**Entity list**)
+            the entities to be spawned on this map
+        """
+        for entity in entities:
+            spawn = self.spawns[entity.type]
+            if spawn.dtype == np.int:
+                spawn = spawn.astype(dtype=np.float) + .5
+            entity.teleport(spawn)
+
+    def _heuristic_(self, abs_dist, distance_traveled):
+        return abs_dist * 2 + distance_traveled
+
+    def path_to(self, src, dst):
+        """
+        Find a list of walkable tiles from src to dst.
+        Only returns the tiles where a direction change is needed.
+
+        Parameters
+        -----------
+        - *src*: (**numpy.ndarray**)
+            the source position
+        - *dst*: (**numpy.ndarray**)
+            the destination position, it must be walkable
+
+        Return
+        -----------
+        False if no path exists.
+        A list of tiles that needs to be reached where a direction change occurs if a path exists.
+        type: **numpy.ndarray list**
+        """
+        src = src.astype(dtype=np.int)
+        dst = dst.astype(dtype=np.int)
+        d = np.sum(np.abs(dst - src))
+        if not self.is_walkable(dst):
+            return False
+        if d == 0:
+            return []
+        self.path_buffer[:, :] = False
+        paths = PriorityQueue()
+        # (remaining_distance, dist_done, path_num, last_direction, checkpoints_list, last_position)
+        paths.put([d, 0, 0, None, [], src, False])
+        path_number = 0  # Used to avoid bug and to define an ordering
+        while not paths.empty():
+            score, dist_done, path_num, last_dir, pts, last_pos, flagged_pt = paths.get()
+            for direction in Direction:
+                new_cell = last_pos + direction.vector
+                # if already walked skip
+                if self.path_buffer[new_cell[0], new_cell[1]]:
+                    continue
+                # if not walkable skip
+                if not self.is_walkable(new_cell):
+                    continue
+                self.path_buffer[new_cell[0], new_cell[1]] = True
+                # If we change direction
+                if last_dir != direction and last_dir is not None:
+                    new_pts = pts[:]
+                    new_pts.append(last_pos)
+                    pts = new_pts
+                new_score = np.sum(np.abs(dst - new_cell))
+                if new_score == 0:
+                    pts.append(dst)
+                    return pts
+                path_number += 1
+                paths.put((self._heuristic_(new_score, dist_done + 1), dist_done, path_number, direction, pts, new_cell, False))
+        return False
+
     def how_far(self, entity, max_distance):
         """
         Return how far the specified entity can move in their current direction.
@@ -219,22 +296,32 @@ class Map():
             the entity to be moved
         - *ticks*: (**float**)
             the number of ticks elapsed
+
+        Return
+        -----------
+        The distance moved in the direction.
+        type: **float**
         """
         speed = entity.speed
         if speed <= 0:
-            return
+            return 0
         max_distance = self.how_far(entity, ticks * speed)
         maxi = max_distance / speed
         v = entity.direction.vector
+        v_orth = entity.direction.rot90(1).vector
 
         # Pick up boosts
         boosts = self.ghost_boosts if entity.type is EntityType.GHOST else self.pacman_boosts
         for index, (loc, t) in enumerate(boosts):
-            coeff = loc - entity.pos
-            if (np.sign(coeff) != np.sign(v)).any():
+            vector = (loc + .5) - entity.pos
+            # if not in the right direction
+            if (np.sign(vector) != v).all():
                 continue
-            coeff = np.max(entity.size + np.abs(coeff))
-            if coeff <= maxi:
+            # If on the side direction entity is not big enough to walk on it
+            if np.max(np.abs(vector * v_orth)) > entity.size + self.boost_size:
+                continue
+            distance = np.max(vector * v) - entity.size - self.boost_size
+            if distance <= maxi * speed:
                 if self.boost_generator:
                     modifier = self.boost_generator.make_modifier(entity, loc)
                     entity.pickup(modifier)
@@ -243,6 +330,7 @@ class Map():
                     self.pacman_boosts.append([loc, t])
         # Actual movement
         entity.move(maxi)
+        return maxi * speed
 
     def print(self, empty=" ", wall="O"):
         """
