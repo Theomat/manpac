@@ -37,7 +37,7 @@ class EntityDrawer():
         s = []
         for postfix in _IMAGE_SET_[entity.type]:
             sprite = pygame.image.load("assets/{}{}.png".format(name, postfix)).convert()
-            sprite = pygame.transform.scale(sprite, (scale, scale))
+            sprite = pygame.transform.scale(sprite, (int(scale * (2 * entity.size)), int(scale * (2 * entity.size))))
             s.append(sprite)
 
         self.sprites = {}
