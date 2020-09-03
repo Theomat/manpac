@@ -7,7 +7,7 @@ from manpac.cell import Cell
 from manpac.game_status import GameStatus
 from manpac.entity_type import EntityType
 from manpac.ui.entity_drawer import EntityDrawer
-from manpac.ui.draw_modifier import DrawModifier
+import manpac.ui.draw_modifier as modifier_drawer
 
 
 REFRESH_DELAY = 25
@@ -65,6 +65,8 @@ class Interface():
         scale_x = self.width / map.width
         scale_y = self.height / map.height
         self.scale = max(1, round(min(scale_x, scale_y)))
+
+        modifier_drawer.init(self.scale)
         # Compute translation offsets
         self.tx = (self.width - self.scale * map.width) // 2
         self.ty = (self.height - self.scale * map.height) // 2
@@ -74,8 +76,6 @@ class Interface():
             self.ghost_boost = pygame.transform.scale(self.ghost_boost, (self.scale, self.scale))
             self.pacman_boost = pygame.image.load("assets/excla.png").convert_alpha()
             self.pacman_boost = pygame.transform.scale(self.pacman_boost, (self.scale, self.scale))
-
-        self.class_modfier = DrawModifier(self.scale)
 
     def start(self, map):
         self.__pygame_init__(map)
@@ -90,7 +90,7 @@ class Interface():
             else:
                 name = "ghost{}".format(ghost)
                 ghost += 1
-            drawer = EntityDrawer(entity, self.scale, name, ghost, self.class_modfier)
+            drawer = EntityDrawer(entity, self.scale, name, ghost)
             self.entities_drawer.append(drawer)
 
         # Loop

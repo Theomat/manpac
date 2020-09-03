@@ -1,13 +1,15 @@
 from manpac.entity_type import EntityType
 from manpac.direction import Direction
-from manpac.ui.draw_modifier import DrawModifier
-from manpac.ui.draw_utils import *
+from manpac.ui.draw_utils import rect_border
+from manpac.utils import export
+import manpac.ui.draw_modifier as modifier_drawer
+
 
 import pygame
 
 DEBUG_COLLISION_BOX = False
 BLINK_RATE = 4  # Number of frames before it changes state
-
+BORDER_SIZE = 5
 
 _IMAGE_SET_ = {
     EntityType.GHOST: ["b1", "b2", "d1", "d2", "g1", "g2", "h1", "h2"],
@@ -29,14 +31,15 @@ _COMBINATIONS_SET_ = {
     }
 }
 
+
+@export
 class EntityDrawer():
 
-    def __init__(self, entity, scale, name, number, boost_class):
+    def __init__(self, entity, scale, name, number):
         self.entity = entity
         self.scale = scale
         self.number = number
-        self.boost_class = boost_class
-        self.holding_boost = rect_border(scale, scale,1,(255,255,0))
+        self.holding_boost = rect_border(scale, scale, 1, (255, 255, 0))
 
         self.blink_counter = 0
         self.blink_state = True  # True if visible otherwise invisible
@@ -68,8 +71,8 @@ class EntityDrawer():
         if self.entity.type is EntityType.GHOST:
             nb_boost = 1
             display.blit(self.icon_sprite, (0, self.number * cell_size * 2))
-            display.blit(self.holding_boost,(cell_size,self.number * cell_size * 2))
-            self.boost_class.draw_modifier(display, self.entity.holding, nb_boost, self.number)
+            display.blit(self.holding_boost, (cell_size + BORDER_SIZE, self.number * cell_size * 2))
+            modifier_drawer.draw_modifier_icon(display, self.entity.holding, nb_boost, self.number, self.scale, BORDER_SIZE)
             # Update mdofifier blink state
             self.blink_counter += 1
             if self.blink_counter >= BLINK_RATE:
@@ -79,7 +82,7 @@ class EntityDrawer():
             if self.blink_state:
                 for boost in self.entity.modifiers:
                     nb_boost += 1
-                    self.boost_class.draw_modifier(display, boost, nb_boost,self.number)
+                    modifier_drawer.draw_modifier_icon(display, boost, nb_boost, self.number, self.scale, BORDER_SIZE)
 
     def draw(self, display):
         if not self.entity.alive:
@@ -87,9 +90,11 @@ class EntityDrawer():
         pos = (self.entity.pos - self.entity.size) * self.scale
         current_sprite = self.sprites[self.last_direction][self.sprite_index]
         if self.entity.type is EntityType.GHOST:
-            self.boost_class.draw_effect(display,current_sprite,pos,self.entity.modifiers)
+            modifier_drawer.draw_effect(display, current_sprite, pos, self.entity.modifiers)
         else:
             display.blit(current_sprite, (round(pos[0]), round(pos[1])))
+
+        # Draw debug collision
         if DEBUG_COLLISION_BOX:
             pos = self.entity.pos
             cell_size = self.scale
