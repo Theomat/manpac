@@ -8,9 +8,9 @@ from manpac.ui.draw_utils import rect_border
 import pygame
 
 
-def __render_block__(display, image, pos):
-    my_rect = rect_border(image.get_width(), image.get_height(), 1, (255, 0, 0))
-    display.blit(my_rect, pos)
+def __render_block__(display, image, pos, border=2):
+    my_rect = rect_border(image.get_width(), image.get_height(), border, (255, 0, 0))
+    display.blit(my_rect, (pos[0] - border, pos[1] - border))
     return 0
 
 
