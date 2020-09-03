@@ -100,10 +100,21 @@ class Game():
         elif entity2.type is EntityType.PACMAN and entity1.type is EntityType.GHOST:
             self.on_collision(entity2, entity1)
         else:
-            v1 = entity1.speed * entity1.direction.vector
-            v2 = entity2.speed * entity2.direction.vector
+            v1 = entity1.direction.vector
+            v2 = entity2.direction.vector
             distance = np.linalg.norm(v1) + np.linalg.norm(v2)
             to_spread = entity1.distance_to(entity2.pos) - (entity2.size + entity1.size)
             coeff = to_spread / distance
-            entity1.teleport(entity1.pos + v1 * coeff)
-            entity2.teleport(entity2.pos + v2 * coeff)
+            coeff1 = 1
+            coeff2 = 1
+            if entity1.can_collide_with(entity2):
+                if not entity2.can_collide_with(entity1):
+                    coeff1 = 0
+            elif entity2.can_collide_with(entity1):
+                coeff2 = 0
+
+            coeff /= (coeff1 + coeff2)
+            entity1.teleport(entity1.pos + v1 * coeff1 * coeff)
+            entity2.teleport(entity2.pos + v2 * coeff2 * coeff)
+            self.map.teleport_back_on_map(entity1)
+            self.map.teleport_back_on_map(entity2)
