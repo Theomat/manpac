@@ -2,6 +2,7 @@ import sys
 import pygame
 from pygame.locals import QUIT
 
+from manpac.utils import export
 from manpac.cell import Cell
 from manpac.game_status import GameStatus
 from manpac.entity_type import EntityType
@@ -11,6 +12,8 @@ from manpac.ui.draw_modifier import DrawModifier
 
 REFRESH_DELAY = 25
 
+
+@export
 class Interface():
 
     def __init__(self, game):
