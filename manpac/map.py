@@ -184,6 +184,14 @@ class Map():
                 spawn = spawn.astype(dtype=np.float) + .5
             entity.teleport(spawn)
 
+    def __cells_occupied_by_entity__(self, entity):
+        cells_occupied_by_entity = []
+        for direction in Direction:
+            position = entity.pos + direction.vector * entity.size * .99
+            coord = position.astype(dtype=np.int)
+            cells_occupied_by_entity.append(coord)
+        return cells_occupied_by_entity
+
     def _heuristic_(self, abs_dist, distance_traveled):
         return abs_dist * 2 + distance_traveled
 
@@ -268,12 +276,8 @@ class Map():
             maxi = min(np.max(v * (next - entity.pos)) / speed, max_distance)
         else:
             # Finds first unwalkable tile
-            cases_where_entity = []
-            for direction in Direction:
-                position = entity.pos + direction.vector * entity.size * .99
-                coord = position.astype(dtype=np.int)
-                cases_where_entity.append(coord)
-            walkables = __find_first_walkable__(self, cases_where_entity, entity.size, 1, v, max_distance)
+            cells_occupied_by_entity = self.__cells_occupied_by_entity__(entity)
+            walkables = __find_first_walkable__(self, cells_occupied_by_entity, entity.size, 1, v, max_distance)
             # Now walkable is target coordinates
             maxi = -1
             for walkable in walkables:
@@ -350,3 +354,34 @@ class Map():
                 else:
                     print(wall, end="")
             print("")
+
+    def teleport_back_on_map(self, entity):
+        """
+        Teleport the specified entity on the closest valid cell of the map.
+        If the entity is already fully in a valid part of the map then nothing happens.
+
+        Parameters
+        -----------
+        - *entity*: (**Entity**)
+            the entity to be teleported
+        """
+        cells_occupied_by_entity = self.__cells_occupied_by_entity__(entity)
+        invalid_cells = [pos for pos in cells_occupied_by_entity if not self.is_walkable(pos)]
+        # If no cells are invalid no issue
+        if not invalid_cells:
+            return
+        # Teleport back to somewhere valid
+        closest = self.closest_walkable(entity.pos)
+        # If on the same cell then we're just overlapping somewhere else
+        if (closest == entity.map_position).all():
+            new_pos = entity.pos.copy()
+            for invalid in invalid_cells:
+                projection = Direction.representing(entity.map_position - invalid)[0].vector
+                frontier_invalid = invalid + .5 + projection * .5
+                frontier_entity = entity.pos + entity.size * (-projection)
+                new_pos += np.abs(projection) * (frontier_invalid - frontier_entity)
+        else:
+            new_pos = closest + .5
+            for direction in Direction.representing(new_pos - entity.pos):
+                new_pos -= direction.vector * (.5 - entity.size)
+        entity.teleport(new_pos)
