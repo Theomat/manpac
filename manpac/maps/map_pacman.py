@@ -1,3 +1,4 @@
+from manpac.utils import export
 from manpac.entity_type import EntityType
 from manpac.cell import Cell
 from manpac.map import Map
@@ -8,9 +9,11 @@ from manpac.modifiers.intangible_modifier import IntangibleModifier
 from manpac.boost_generators.simple_boost_generator import SimpleBoostGenerator
 import manpac.maps.map_builder as build
 
+
 import numpy as np
 
 
+@export
 class MapPacman(Map):
 
     def __init__(self, game):
