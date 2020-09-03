@@ -1,6 +1,6 @@
 from manpac.entity_type import EntityType
 from manpac.direction import Direction
-
+from manpac.ui.draw_utils import *
 
 import pygame
 
@@ -36,6 +36,7 @@ class EntityDrawer():
         self.scale = scale
         self.number = number
         self.boost_dict = boost_dict
+        self.holding_boost = rect_border(scale, scale,1,(255,255,0))
 
         self.blink_counter = 0
         self.blink_state = True  # True if visible otherwise invisible
@@ -72,6 +73,7 @@ class EntityDrawer():
         if self.entity.type is EntityType.GHOST:
             nb_boost = 1
             display.blit(self.icon_sprite, (0, self.number * cell_size * 2))
+            display.blit(self.holding_boost,(cell_size,self.number * cell_size * 2))
             self.draw_modifier(display, self.entity.holding, nb_boost)
             # Update mdofifier blink state
             self.blink_counter += 1
