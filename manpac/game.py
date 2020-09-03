@@ -104,7 +104,7 @@ class Game():
             v2 = entity2.direction.vector
             distance = np.linalg.norm(v1) + np.linalg.norm(v2)
             to_spread = entity1.distance_to(entity2.pos) - (entity2.size + entity1.size)
-            coeff = to_spread / distance
+            coeff = 2 * to_spread / distance
             coeff1 = 1
             coeff2 = 1
             if entity1.can_collide_with(entity2):

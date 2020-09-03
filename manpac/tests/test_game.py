@@ -7,6 +7,7 @@ from manpac.game_status import GameStatus
 from manpac.controllers.target_seeker_controller import TargetSeekerController
 
 import pytest
+import numpy as np
 
 
 def test_status():
@@ -25,8 +26,12 @@ def test_collision_resolution():
     pacman2.moving = True
     pacman2.face(-pacman.direction)
 
-    g = Game(ghost, pacman)
-    g.start(Map((10, 10)))
+    map = Map((10, 10))
+    map.spawns[EntityType.GHOST] = np.array([1, 1])
+    map.spawns[EntityType.PACMAN] = np.array([1, 1])
+
+    g = Game(ghost, pacman, pacman2)
+    g.start(map)
 
     g.on_collision(pacman, ghost)
     assert not ghost.alive
