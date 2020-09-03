@@ -1,5 +1,6 @@
 from manpac.entity_type import EntityType
 from manpac.direction import Direction
+from manpac.ui.draw_modifier import DrawModifier
 from manpac.ui.draw_utils import *
 
 import pygame
@@ -28,14 +29,13 @@ _COMBINATIONS_SET_ = {
     }
 }
 
-
 class EntityDrawer():
 
-    def __init__(self, entity, scale, name, number, boost_dict):
+    def __init__(self, entity, scale, name, number, boost_class):
         self.entity = entity
         self.scale = scale
         self.number = number
-        self.boost_dict = boost_dict
+        self.boost_class = boost_class
         self.holding_boost = rect_border(scale, scale,1,(255,255,0))
 
         self.blink_counter = 0
@@ -61,11 +61,6 @@ class EntityDrawer():
         self.sprite_index = 0
         self.last_direction = entity.direction
 
-    def draw_modifier(self, display, modifier, nb_boost):
-        for modifierCls, sprite in self.boost_dict.items():
-            if isinstance(modifier, modifierCls):
-                display.blit(sprite, (nb_boost * self.scale, self.number * self.scale * 2))
-
     def draw_icon(self, display):
         if not self.entity.alive:
             return
@@ -74,7 +69,7 @@ class EntityDrawer():
             nb_boost = 1
             display.blit(self.icon_sprite, (0, self.number * cell_size * 2))
             display.blit(self.holding_boost,(cell_size,self.number * cell_size * 2))
-            self.draw_modifier(display, self.entity.holding, nb_boost)
+            self.boost_class.draw_modifier(display, self.entity.holding, nb_boost, self.number)
             # Update mdofifier blink state
             self.blink_counter += 1
             if self.blink_counter >= BLINK_RATE:
@@ -84,15 +79,17 @@ class EntityDrawer():
             if self.blink_state:
                 for boost in self.entity.modifiers:
                     nb_boost += 1
-                    self.draw_modifier(display, boost, nb_boost)
+                    self.boost_class.draw_modifier(display, boost, nb_boost,self.number)
 
     def draw(self, display):
         if not self.entity.alive:
             return
         pos = (self.entity.pos - self.entity.size) * self.scale
         current_sprite = self.sprites[self.last_direction][self.sprite_index]
-
-        display.blit(current_sprite, (round(pos[0]), round(pos[1])))
+        if self.entity.type is EntityType.GHOST:
+            self.boost_class.draw_effect(display,current_sprite,pos,self.entity.modifiers)
+        else:
+            display.blit(current_sprite, (round(pos[0]), round(pos[1])))
         if DEBUG_COLLISION_BOX:
             pos = self.entity.pos
             cell_size = self.scale

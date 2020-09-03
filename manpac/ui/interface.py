@@ -6,16 +6,10 @@ from manpac.cell import Cell
 from manpac.game_status import GameStatus
 from manpac.entity_type import EntityType
 from manpac.ui.entity_drawer import EntityDrawer
-from manpac.modifiers.swap_modifier import SwapModifier
-from manpac.modifiers.speed_modifier import SpeedModifier
-from manpac.modifiers.intangible_modifier import IntangibleModifier
-from manpac.modifiers.ghost_block_modifier import GhostBlockModifier
+from manpac.ui.draw_modifier import DrawModifier
 
 
 REFRESH_DELAY = 25
-
-boost_list = [("swap", SwapModifier), ("theghost", IntangibleModifier), ("speed", SpeedModifier), ("diamond", GhostBlockModifier)]
-
 
 class Interface():
 
@@ -78,10 +72,7 @@ class Interface():
             self.pacman_boost = pygame.image.load("assets/excla.png").convert_alpha()
             self.pacman_boost = pygame.transform.scale(self.pacman_boost, (self.scale, self.scale))
 
-        self.boost_dict = {}
-        for (sprite_name, modifierCls) in boost_list:
-            boost_image = pygame.image.load("assets/{}.png".format(sprite_name)).convert_alpha()
-            self.boost_dict[modifierCls] = pygame.transform.scale(boost_image, (self.scale, self.scale))
+        self.class_modfier = DrawModifier(self.scale)
 
     def start(self, map):
         self.__pygame_init__(map)
@@ -96,7 +87,7 @@ class Interface():
             else:
                 name = "ghost{}".format(ghost)
                 ghost += 1
-            drawer = EntityDrawer(entity, self.scale, name, ghost, self.boost_dict)
+            drawer = EntityDrawer(entity, self.scale, name, ghost, self.class_modfier)
             self.entities_drawer.append(drawer)
 
         # Loop
