@@ -7,7 +7,7 @@ name: Tests
 on:
   push:
     branches:
-      -  master
+      - master
       - dev
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -36,3 +36,8 @@ jobs:
       # Runs a single command using the runners shell
       - name: Test with pytest
         run: python -m pytest
+      - name: Install package
+        run: pip install .
+      # Check no error on 100 games
+      - name: Test on 100 games
+        run: python -m manpac.run -c rw wa rw wa -n 100
