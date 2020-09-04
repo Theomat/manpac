@@ -29,33 +29,26 @@ class WalkAwayController(AbstractController):
         pacs = [entity for entity in self.game.entities if entity.type == EntityType.PACMAN]
         choices = [dir for dir in Direction
                    if self.game.map.is_walkable(self.entity.map_position + dir.vector)]
-        min_square_dist = 50
-        for pac in pacs:
-            new_choices = []
-            dif_pos = self.entity.pos - pac.pos
-            square_dist = np.sum(abs(dif_pos))
-            if square_dist < min_square_dist:
-                min_square_dist = square_dist
-                closest_pac = pac
-            for direction in choices:
-                if np.max(direction.vector * dif_pos) > 0:
-                    new_choices.append(direction)
-            choices = new_choices
+        max_min_square_dist = 0
+        for direction in choices:
+            per_dir_min = 50
+            for pac in pacs:
+                test_path = self.game.map.path_to(pac.pos, self.entity.map_position + direction.vector)
+                tmp_dist = 0
+                for i in range(len(test_path)-1):
+                    tmp_dist += np.sum(np.abs(test_path[i+1] - test_path[i]))
+                if tmp_dist < per_dir_min:
+                    per_dir_min = tmp_dist
+            if per_dir_min > max_min_square_dist:
+                max_min_square_dist = per_dir_min
+                return_dir = direction
 
-        len_choices = len(choices)
-        if len_choices == 0:
-            choices = [dir for dir in Direction
-                       if self.game.map.is_walkable(self.entity.map_position + dir.vector)]
-            dif_pos = self.entity.pos - closest_pac.pos
-            dif_pos[np.argmax(abs(dif_pos))] = 0
-            for direction in choices:
-                if np.max(direction.vector * dif_pos) > 0:
-                    return [direction]
+        if max_min_square_dist == 0:
+            print("no dir")
             return []
-        elif len_choices == 1:
-            return [choices[0]]
-        else:
-            return [random.choice(choices)]
+        print(return_dir)
+        return [return_dir]
+
 
 
     def update(self, ticks):
@@ -72,5 +65,14 @@ class WalkAwayController(AbstractController):
             else:
                 self.entity.moving = False
             self._dir_duration = 0
+        else:
+            self.entity.moving = True
+            speed = self.entity.speed
+            used_ticks = self.game.map.how_far(self.entity, speed * ticks) / speed
+            self.game.map.move(self.entity, used_ticks)
+            if used_ticks < ticks:
+                # Force direction change
+                self._dir_duration = self.switch_duration + 1
+                self.update(ticks - used_ticks)
 
-        self.game.map.move(self.entity, ticks)
+        self.entity.use_modifier()
