@@ -77,7 +77,11 @@ class Game():
     def _check_collisions_(self):
         cpy = self.entities[:]
         for i, entity1 in enumerate(cpy):
+            if not entity1.alive:
+                continue
             for entity2 in cpy[i+1:]:
+                if not entity2.alive:
+                    continue
                 can_collide = entity1.can_collide_with(entity2.type) or entity2.can_collide_with(entity1.type)
                 if can_collide and \
                         entity1.squared_distance_to(entity2.pos) < (entity2.size + entity1.size)**2:
