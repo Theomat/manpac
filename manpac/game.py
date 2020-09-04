@@ -78,7 +78,7 @@ class Game():
         cpy = self.entities[:]
         for i, entity1 in enumerate(cpy):
             for entity2 in cpy[i+1:]:
-                can_collide = entity1.can_collide_with(entity2) or entity2.can_collide_with(entity1)
+                can_collide = entity1.can_collide_with(entity2.type) or entity2.can_collide_with(entity1.type)
                 if can_collide and \
                         entity1.squared_distance_to(entity2.pos) < (entity2.size + entity1.size)**2:
                     self.on_collision(entity1, entity2)

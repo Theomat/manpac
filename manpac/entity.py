@@ -194,17 +194,17 @@ class Entity():
 
     def can_collide_with(self, other):
         """
-        Return True only if this entity can collide with the specified entity.
+        Return True only if this entity can collide with the specified entity type.
         Parameters
         -----------
-        - *other*: (**Entity**)
-            the entity to chekc collision with
+        - *other*: (**EntityType**)
+            the entity type to check collision with
         Return
         -----------
         True if this entity can collide with the specified entity, False otherwise.
         type: **bool**
         """
-        if self.type is EntityType.PACMAN or other.type is EntityType.PACMAN:
+        if self.type is EntityType.PACMAN or other is EntityType.PACMAN:
             return self.is_tangible
         else:
             return reduce(operator.or_,

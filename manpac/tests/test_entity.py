@@ -69,8 +69,8 @@ def test_default_collison_behavior():
     ghost = Entity(EntityType.GHOST)
     pacman = Entity(EntityType.PACMAN)
 
-    assert not ghost.can_collide_with(ghost)
-    assert ghost.can_collide_with(pacman)
+    assert not ghost.can_collide_with(ghost.type)
+    assert ghost.can_collide_with(pacman.type)
 
-    assert pacman.can_collide_with(ghost)
-    assert pacman.can_collide_with(pacman)
+    assert pacman.can_collide_with(ghost.type)
+    assert pacman.can_collide_with(pacman.type)
