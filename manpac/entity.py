@@ -143,6 +143,8 @@ class Entity():
         - *ticks*: (**float**)
             the number of ticks elapsed
         """
+        if not self.alive:
+            return
         new_modifiers = []
         dead_modifiers = []
         for modifier in self.modifiers:
@@ -214,5 +216,6 @@ class Entity():
         Kill this entity.
         """
         self.alive = False
+        self.moving = False
         if self.controller:
             self.controller.on_death()
