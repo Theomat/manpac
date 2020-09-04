@@ -71,6 +71,18 @@ class TargetSeekerController(AbstractController):
             self._make_new_target_(self.path[0])
         else:
             self._target = None
+            self._dist_to_target = 1e9
+
+    def _update_aggro_(self):
+        old = self.aggro
+        self.aggro = self.select_target()
+        if not (old == self.aggro):
+            self.on_change_target(old)
+        else:
+            # Compute new path
+            self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
+            self.on_change_path()
+        self._last_aggro_update = 0
 
     def _make_new_target_(self, target):
         self._target = target
@@ -81,26 +93,14 @@ class TargetSeekerController(AbstractController):
         if self.path:
             self._make_new_target_(self.path[0])
         else:
-            old = self.aggro
-            self.aggro = self.select_target()
-            if not (old == self.aggro):
-                self.on_change_target(old)
-            else:
-                # Compute new path
-                self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
-                self.on_change_path()
-            self._last_aggro_update = 0
+            self._update_aggro_()
 
     def update(self, ticks):
         self._last_aggro_update += ticks
         self._last_path_update += ticks
         # Update target
         if self.aggro is None or not self.aggro.alive or self._last_aggro_update >= self.aggro_refresh:
-            old = self.aggro
-            self.aggro = self.select_target()
-            if not (old == self.aggro):
-                self.on_change_target(old)
-            self._last_aggro_update = 0
+            self._update_aggro_()
 
         # If no target location then go refresh aggro
         if self._target is None:
@@ -108,7 +108,7 @@ class TargetSeekerController(AbstractController):
             return
 
         # Update path if it's time
-        if self._last_path_update >= self.path_refresh:
+        if not self.path or self._last_path_update >= self.path_refresh:
             self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
             self.on_change_path()
 
@@ -118,7 +118,10 @@ class TargetSeekerController(AbstractController):
 
         # Check if reached checkpoint
         if self._dist_to_target <= 0:
-            self._on_reach_checkpoint_()
+            if self.path:
+                self._on_reach_checkpoint_()
+            else:
+                self._update_aggro_()
         # Check if we can reach the checkpoint
         self.entity.moving = True
         speed = self.entity.speed
