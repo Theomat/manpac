@@ -27,8 +27,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          sudo apt-get install python-pygame
-          pip install pygame
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
@@ -38,8 +36,3 @@ jobs:
       # Runs a single command using the runners shell
       - name: Test with pytest
         run: python -m pytest
-      - name: Install package
-        run: pip install .
-      # Check no error on 100 games
-      - name: Test on 100 games
-        run: python -m manpac.run -c rw wa rw wa -n 100
