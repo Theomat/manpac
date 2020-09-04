@@ -68,6 +68,7 @@ class TargetSeekerController(AbstractController):
     def on_change_path(self):
         self._last_path_update = 0
         if self.path:
+            self.path.append(self.aggro.pos)
             self._make_new_target_(self.path[0])
         else:
             self._target = None
@@ -113,7 +114,7 @@ class TargetSeekerController(AbstractController):
             self.on_change_path()
 
         if self.debug:
-            for pt in self.path:
+            for pt in self.path[:-1]:
                 self.game.map[pt] = Cell.DEBUG_ONCE
 
         # Check if reached checkpoint
