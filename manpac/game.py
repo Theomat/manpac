@@ -95,7 +95,6 @@ class Game():
         """
         if entity1.type is EntityType.PACMAN and entity2.type is EntityType.GHOST:
             entity2.kill()
-            self.entities.remove(entity2)
             self.ghosts -= 1
         elif entity2.type is EntityType.PACMAN and entity1.type is EntityType.GHOST:
             self.on_collision(entity2, entity1)
