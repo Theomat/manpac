@@ -27,7 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          apt-get build-dep python-pygame
+          sudo apt-get build-dep python-pygame
           pip install pygame
       - name: Lint with flake8
         run: |
