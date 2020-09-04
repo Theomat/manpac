@@ -2,14 +2,10 @@ from manpac.utils import export
 from manpac.direction import Direction
 from manpac.entity_type import EntityType
 from manpac.controllers.abstract_controller import AbstractController
-
 from manpac.cell import Cell
 
 
 import numpy as np
-
-
-__DEBUG_PATH__ = False
 
 
 @export
@@ -34,6 +30,7 @@ class TargetSeekerController(AbstractController):
         self._dist_to_target = 0
         self._last_aggro_update = 9999
         self._last_path_update = 9999
+        self.debug = False
 
     def select_target(self):
         """
@@ -47,7 +44,7 @@ class TargetSeekerController(AbstractController):
         closest = self.aggro
         distance = 1e14
         for entity in self.game.entities:
-            if entity.type == EntityType.PACMAN:
+            if not entity.alive or entity.type == EntityType.PACMAN:
                 continue
             d = self.entity.squared_distance_to(entity.pos)
             if d < distance:
@@ -84,9 +81,15 @@ class TargetSeekerController(AbstractController):
         if self.path:
             self._make_new_target_(self.path[0])
         else:
-            # Compute new path
-            self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
-            self.on_change_path()
+            old = self.aggro
+            self.aggro = self.select_target()
+            if not (old == self.aggro):
+                self.on_change_target(old)
+            else:
+                # Compute new path
+                self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
+                self.on_change_path()
+            self._last_aggro_update = 0
 
     def update(self, ticks):
         self._last_aggro_update += ticks
@@ -109,7 +112,7 @@ class TargetSeekerController(AbstractController):
             self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
             self.on_change_path()
 
-        if __DEBUG_PATH__:
+        if self.debug:
             for pt in self.path:
                 self.game.map[pt] = Cell.DEBUG_ONCE
 
