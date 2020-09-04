@@ -3,7 +3,6 @@ from manpac.direction import Direction
 from manpac.controllers.abstract_controller import AbstractController
 from manpac.entity_type import EntityType
 
-import random
 import numpy as np
 
 
@@ -44,12 +43,10 @@ class WalkAwayController(AbstractController):
                 return_dir = direction
 
         if max_min_square_dist == 0:
-            print("no dir")
+            # print("no dir")
             return []
-        print(return_dir)
+        # print(return_dir)
         return [return_dir]
-
-
 
     def update(self, ticks):
         self._dir_duration += ticks
