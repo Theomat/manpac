@@ -17,6 +17,8 @@ class SwapModifier(AbstractModifier):
         closest = None
         distance = 1e12
         for entity in self.game.entities:
+            if not entity.alive or not entity.is_tangible:
+                continue
             d = caster.squared_distance_to(entity.pos)
             if d > 0 and d <= self.range * self.range and d <= distance:
                 distance = d
