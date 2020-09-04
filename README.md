@@ -15,6 +15,13 @@ There are power-ups that will spawn on the map, only the ghosts can pick them up
 These power-ups if not picked up will disappear after some time.
 Once a power-up is picked up or disappear, a pac-man power-up spawns at the same location, which dramatically boosts pac-man for a short duration. Of course, only pac-man can pick it up.
 
+## Running
+
+If you have installed the package, with for example ```conda develop .```.
+
+You can run:
+```python -m manpac.run -h``` to display the help.
+
 ## Writing code
 
 - *Commits, Code, Documentation* in **English**.
@@ -31,13 +38,15 @@ Once a power-up is picked up or disappear, a pac-man power-up spawns at the same
 - [pygame](https://www.pygame.org/)
 - [pytest](https://github.com/pytest-dev/pytest/)
 - [pytest-timeout](https://github.com/pytest-dev/pytest-timeout/)
+- [tqdm](https://github.com/tqdm/tqdm)
 
 You can easily create an environment with the right dependencies:
 ```bash
-conda create --name manpac python numpy pytest pytest-timeout
+conda create --name manpac python numpy pytest pytest-timeout tqdm
 conda activate manpac
 pip install pygame
 ```
+
 
 ## Branches
 
