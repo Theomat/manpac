@@ -12,6 +12,7 @@ from manpac.controllers.human_controller import HumanController
 from manpac.controllers.random_walk_controller import RandomWalkController
 from manpac.controllers.walk_away_controller import WalkAwayController
 from manpac.controllers.target_seeker_controller import TargetSeekerController
+from manpac.controllers.net_server_controller import NetServerController
 
 from manpac.ui.interface import Interface
 
@@ -26,6 +27,7 @@ CONTROLLER_DICT = {
     "hu": lambda game: HumanController(game),
     "rw": lambda game: RandomWalkController(game),
     "wa": lambda game: WalkAwayController(game, 10),
+    "ns": lambda game: NetServerController(game, "localhost", 2097)
 }
 # =============================================================================
 #  ARGUMENT PARSING
@@ -42,7 +44,7 @@ game_options.add_argument('-c', '--controllers', dest='controllers_name',
 game_options.add_argument('-m', '--map', dest='map_name',
                           action='store', default=default_map, type=str,
                           choices=list(MAP_DICT.keys()),
-                          help=f'the map (default: "{default_map}")')
+                          help='the map (default: "{}")'.format(default_map))
 game_options.add_argument('--pacman', dest='pacmans',
                           action='store', default=1, type=int,
                           help='the number of pacman (default: 1)')
