@@ -22,7 +22,7 @@ class MapPacman(Map):
                          (1, lambda:GhostBlockModifier(game, 2 * 60)),
                          (1, lambda:IntangibleModifier(game, 2 * 60))]
         pacman_factory = [(1, lambda:SpeedModifier(game, 2 * 60, 2))]
-        boost_generator = SimpleBoostGenerator(game, .0, ghost_factory, pacman_factory)
+        boost_generator = SimpleBoostGenerator(game, .05, ghost_factory, pacman_factory)
         super(MapPacman, self).__init__((21, 28), boost_generator)
 
         # Borders of the map
