@@ -9,7 +9,7 @@ from manpac.cell import Cell
 import numpy as np
 
 
-__DEBUG_PATH__ = True
+__DEBUG_PATH__ = False
 
 
 @export
