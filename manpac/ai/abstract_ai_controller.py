@@ -5,9 +5,9 @@ from abc import ABC, abstractmethod
 
 
 @export
-class AbstractIAController(AbstractController, ABC):
+class AbstractAIController(AbstractController, ABC):
     """
-    An abstract IA controller to easily use with a model.
+    An abstract AI controller to easily use with a model.
     """
     @abstractmethod
     def init_state(self):
@@ -19,7 +19,7 @@ class AbstractIAController(AbstractController, ABC):
     @abstractmethod
     def get_action(self, ticks):
         """
-        Obtain the action designed by this IA.
+        Obtain the action designed by this AI.
         Parameters
         -----------
         - *ticks*: (**float**)
