@@ -29,6 +29,12 @@ class AbstractController(ABC):
         """
         self.entity = entity
 
+    def on_game_start(self):
+        """
+        Fired before the game starts, after entities have spawned.
+        """
+        pass
+
     def on_death(self):
         """
         Fired upon the death of the entity this controlled was attached to.

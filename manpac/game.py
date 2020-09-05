@@ -47,6 +47,10 @@ class Game():
                 self.ghosts += 1
         # Spawn entities
         self.map.spawn_entities(*self.entities)
+        # Fire on_game_start event
+        for entity in self.entities:
+            if entity.controller:
+                entity.controller.on_game_start()
         # Update status
         self.status = GameStatus.ONGOING if self.ghosts > 1 else GameStatus.FINISHED
 
