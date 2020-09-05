@@ -1,7 +1,7 @@
 from manpac.utils.export_decorator import export
 from manpac.controllers.abstract_controller import AbstractController
 from manpac.controllers.net_message import parse, \
-    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgDoTick
+    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgDoTick, MsgSyncMapBoosts
 
 import socket
 import threading
@@ -33,11 +33,18 @@ def _callback_do_tick_(net_client_controller, msg, socket):
     net_client_controller.net_ticks = msg.ticks - net_client_controller.game.duration
 
 
+def _callback_sync_map_boosts_(net_client_controller, msg, socket):
+    if net_client_controller.game.map:
+        net_client_controller.game.map.ghost_boosts = msg.ghost_boosts
+        net_client_controller.game.map.pacman_boosts = msg.pacman_boosts
+
+
 _CALLBACKS_ = {
     MsgResult.uid: _callback_result_,
     MsgSyncEntity.uid: _callback_sync_entity_,
     MsgSyncMap.uid: _callback_sync_map_,
     MsgDoTick.uid: _callback_do_tick_,
+    MsgSyncMapBoosts.uid: _callback_sync_map_boosts_
 }
 
 
@@ -64,12 +71,17 @@ class NetClientController(AbstractController):
         super(NetClientController, self).on_attach(entity)
         self.controller.on_attach(entity)
 
+        ret_code = self.socket.connect_ex((self.host, self.port))
+        if not ret_code == 0:
+            print("Failed to connect to: host=", self.host, "port=", self.port)
+            print("Error code=", ret_code)
+            exit()
+
         server_thread = threading.Thread(target=self._listen_)
         # Exit the server thread when the main thread terminates
         server_thread.daemon = True
         server_thread.start()
 
-        self.socket.connect((self.host, self.port))
         self._notify_(MsgJoin(self.entity.type))
 
     def _listen_(self):
@@ -88,6 +100,7 @@ class NetClientController(AbstractController):
             time.sleep(.1)
         self.controller.on_game_start()
         self.game.map.terrain = self.terrain
+        self.game.map.boost_generator = None
         self.game.map.compiled = False
         self.game.map.compile()
 

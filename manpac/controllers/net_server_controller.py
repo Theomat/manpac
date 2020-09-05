@@ -1,7 +1,7 @@
 from manpac.utils.export_decorator import export
 from manpac.controllers.abstract_controller import AbstractController
 from manpac.controllers.net_message import parse, \
-    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgDoTick, MsgCompound
+    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgDoTick, MsgCompound, MsgSyncMapBoosts
 
 import socketserver
 import threading
@@ -49,10 +49,9 @@ class NetServerHandler(socketserver.BaseRequestHandler):
 @export
 class NetServerController(AbstractController):
 
-    def __init__(self, game, ip="127.0.0.1", port=9999):
+    def __init__(self, game, host="127.0.0.1", port=9999):
         super(NetServerController, self).__init__(game)
-        print("Listening on:", ip, "on port", port)
-        self.server = socketserver.UDPServer((ip, port), partial(NetServerHandler, self), bind_and_activate=True)
+        self.server = socketserver.UDPServer((host, port), partial(NetServerHandler, self), bind_and_activate=True)
         # Start a thread with the server -- that thread will then start one
         # more thread for each request
         server_thread = threading.Thread(target=self.server.serve_forever)
@@ -103,3 +102,4 @@ class NetServerController(AbstractController):
                     if self.entity != e]
         messages.append(MsgDoTick(self.game.duration))
         self._send_message_(MsgCompound(*messages))
+        self._send_message_(MsgSyncMapBoosts(self.game.map.ghost_boosts, self.game.map.pacman_boosts))

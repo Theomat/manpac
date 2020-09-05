@@ -153,6 +153,39 @@ class MsgCompound(NetMessage):
         return MsgCompound(*[parse(s) for s in string.split("@")])
 
 
+@export
+class MsgSyncMapBoosts(NetMessage):
+    uid = 7
+
+    def __init__(self, ghost_boosts, pacman_boosts):
+        self.pacman_boosts = pacman_boosts
+        self.ghost_boosts = ghost_boosts
+
+    def __str__(self):
+        g = "@".join(["{},{},{}".format(loc[0], loc[1], duration) for (loc, duration) in self.ghost_boosts])
+        p = "@".join(["{},{},{}".format(loc[0], loc[1], duration) for (loc, duration) in self.pacman_boosts])
+        return "{}:{}u{}".format(self.uid, g, p)
+
+    @classmethod
+    def from_string(cls, string):
+        boosts = string.split("u")
+        ghosts = []
+        for string in boosts[0].split("@"):
+            data = string.split(",")
+            if len(data) != 3:
+                continue
+            parsed = [np.array([int(data[0]), int(data[1])], dtype=np.int), float(data[2])]
+            ghosts.append(parsed)
+        pacmans = []
+        for string in boosts[1].split("@"):
+            data = string.split(",")
+            if len(data) != 3:
+                continue
+            parsed = [np.array([int(data[0]), int(data[1])], dtype=np.int), float(data[2])]
+            pacmans.append(parsed)
+        return MsgSyncMapBoosts(ghosts, pacmans)
+
+
 _MESSAGES_ = {
     MsgJoin.uid: MsgJoin,
     MsgResult.uid: MsgResult,
@@ -160,4 +193,5 @@ _MESSAGES_ = {
     MsgSyncEntity.uid: MsgSyncEntity,
     MsgDoTick.uid: MsgDoTick,
     MsgCompound.uid: MsgCompound,
+    MsgSyncMapBoosts.uid: MsgSyncMapBoosts,
 }
