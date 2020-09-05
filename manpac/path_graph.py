@@ -22,6 +22,7 @@ class PathGraph():
         self.nodes = np.zeros_like(map.terrain) - 1
         self.nodes_data = []
         self.buffer = np.zeros_like(self.nodes, dtype=np.bool)
+        self.debug = False
         self._build_()
 
     def _is_node_candidate_(self, pos):
@@ -52,7 +53,8 @@ class PathGraph():
             numero = len(self.nodes_data)
             self.nodes[pos[0], pos[1]] = numero
             self.nodes_data.append({'pos': pos.copy()})
-            self.map[pos] = 2
+            if self.debug:
+                self.map[pos] = 2
             return True
         return False
 
