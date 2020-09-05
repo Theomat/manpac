@@ -42,7 +42,7 @@ class MsgJoin(NetMessage):
 
     def __str__(self):
         t = "g" if self.type is EntityType.GHOST else "p"
-        return f"{self.uid}:{t}"
+        return "{}:{}".format(self.uid, t)
 
     @classmethod
     def from_string(cls, string):
@@ -60,7 +60,7 @@ class MsgResult(NetMessage):
 
     def __str__(self):
         t = "t" if self.result else "f"
-        return f"{self.uid}:{t}"
+        return "{}:{}".format(self.uid, t)
 
     @classmethod
     def from_string(cls, string):
@@ -76,7 +76,7 @@ class MsgSyncMap(NetMessage):
 
     def __str__(self):
         t = np.array2string(self.terrain, separator=",")
-        return f"{self.uid}:{t}"
+        return "{}:{}".format(self.uid, t)
 
     @classmethod
     def from_string(cls, string):
@@ -111,7 +111,7 @@ class MsgSyncEntity(NetMessage):
     def __str__(self):
         t = np.array2string(self.pos, separator=",")
         end = "t" if self.alive else "f"
-        return f"{self.uid}:{t}/{self.direction.value}/{end}/{self.ent_uid}"
+        return "{}:{}/{}/{}/{}".format(self.uid, t, self.direction.value, end, self.ent_uid)
 
     @classmethod
     def from_string(cls, string):
@@ -129,7 +129,7 @@ class MsgDoTick(NetMessage):
         self.ticks = ticks
 
     def __str__(self):
-        return f"{self.uid}:{self.ticks}"
+        return "{}:{}".format(self.uid, self.ticks)
 
     @classmethod
     def from_string(cls, string):
@@ -146,7 +146,7 @@ class MsgCompound(NetMessage):
 
     def __str__(self):
         s = "@".join([str(m) for m in self.messages])
-        return f"{self.uid}:{s}"
+        return "{}:{}".format(self.uid, s)
 
     @classmethod
     def from_string(cls, string):
