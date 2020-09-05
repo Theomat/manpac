@@ -25,14 +25,14 @@ MAP_DICT = {
     "pacman": lambda game: MapPacman(game)
 }
 CONTROLLER_DICT = {
-    "n": lambda game: None,
-    "t": lambda game: TargetSeekerController(game),
-    "hu": lambda game: HumanController(game),
-    "rw": lambda game: RandomWalkController(game),
-    "wa": lambda game: WalkAwayController(game, 10),
-    "ns": lambda game: NetServerController(game),
-    "nc": lambda game: NetClientController(HumanController(game)),
-    "ncrw": lambda game: NetClientController(RandomWalkController(game))
+    "n": lambda game, params: None,
+    "t": lambda game, params: TargetSeekerController(game),
+    "hu": lambda game, params: HumanController(game),
+    "rw": lambda game, params: RandomWalkController(game),
+    "wa": lambda game, params: WalkAwayController(game, 10),
+    "ns": lambda game, params: NetServerController(game, params.host, params.port),
+    "nc": lambda game, params: NetClientController(HumanController(game), params.host, params.port),
+    "ncrw": lambda game, params: NetClientController(RandomWalkController(game), params.host, params.port)
 }
 # =============================================================================
 #  ARGUMENT PARSING
@@ -62,7 +62,7 @@ game_options.add_argument('-n', dest='games',
                           help='the number of games (default: 1)')
 
 misc_options = parser.add_argument_group('misc options')
-misc_options.add_argument('-p', '--progress', dest='progress',
+misc_options.add_argument('--progress', dest='progress',
                           action='store_true', default=False,
                           help='display a progress bar in the console')
 misc_options.add_argument('--ui', dest='ui',
@@ -71,6 +71,14 @@ misc_options.add_argument('--ui', dest='ui',
 misc_options.add_argument('-d', '--debug', dest='debug',
                           action='store_true', default=False,
                           help='activate debug mode')
+
+net_options = parser.add_argument_group('net options')
+net_options.add_argument('--host', dest='host',
+                         action='store', default="127.0.0.1",
+                         help='host for net services (default: "127.0.0.1")')
+net_options.add_argument('-p', '--port', dest='port',
+                         action='store', default=9999, type=int,
+                         help='port for net services (default: 9999)')
 
 params = parser.parse_args()
 # =============================================================================
@@ -91,7 +99,7 @@ for game_num in game_range:
 
     # Attach controller off pacman
     for pacman in pacmans:
-        controller = CONTROLLER_DICT[params.pacman_controller](game)
+        controller = CONTROLLER_DICT[params.pacman_controller](game, params)
         if controller is None:
             continue
         controller.debug = params.debug
@@ -99,7 +107,7 @@ for game_num in game_range:
 
     # Attach controller off ghosts
     for ghost, controller in zip(ghosts, params.controllers_name):
-        controller = CONTROLLER_DICT[controller](game)
+        controller = CONTROLLER_DICT[controller](game, params)
         if controller is None:
             continue
         controller.debug = params.debug
