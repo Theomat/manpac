@@ -13,6 +13,7 @@ from manpac.controllers.random_walk_controller import RandomWalkController
 from manpac.controllers.walk_away_controller import WalkAwayController
 from manpac.controllers.target_seeker_controller import TargetSeekerController
 from manpac.controllers.net_server_controller import NetServerController
+from manpac.controllers.net_client_controller import NetClientController
 
 from manpac.ui.interface import Interface
 
@@ -24,10 +25,14 @@ MAP_DICT = {
     "pacman": lambda game: MapPacman(game)
 }
 CONTROLLER_DICT = {
+    "n": lambda game: None,
+    "t": lambda game: TargetSeekerController(game),
     "hu": lambda game: HumanController(game),
     "rw": lambda game: RandomWalkController(game),
     "wa": lambda game: WalkAwayController(game, 10),
-    "ns": lambda game: NetServerController(game, "localhost", 2097)
+    "ns": lambda game: NetServerController(game),
+    "nc": lambda game: NetClientController(HumanController(game)),
+    "ncrw": lambda game: NetClientController(RandomWalkController(game))
 }
 # =============================================================================
 #  ARGUMENT PARSING
@@ -40,14 +45,18 @@ game_options.add_argument('-c', '--controllers', dest='controllers_name',
                           action='store', type=str,
                           choices=list(CONTROLLER_DICT.keys()),
                           nargs=4, required=True,
-                          help='the controllers the ghosts will use (required)')
+                          help='the controllers pacman and ghosts will use (required)')
 game_options.add_argument('-m', '--map', dest='map_name',
                           action='store', default=default_map, type=str,
                           choices=list(MAP_DICT.keys()),
                           help='the map (default: "{}")'.format(default_map))
-game_options.add_argument('--pacman', dest='pacmans',
-                          action='store', default=1, type=int,
-                          help='the number of pacman (default: 1)')
+game_options.add_argument('--pacman', dest='pacman_controller',
+                          action='store', type=str, default="t",
+                          choices=list(CONTROLLER_DICT.keys()),
+                          help='the controller for pacman (default: "t")')
+game_options.add_argument('--no-pac', dest='no_pacman',
+                          action='store_true',
+                          help='no pacman')
 game_options.add_argument('-n', dest='games',
                           action='store', default=1, type=int,
                           help='the number of games (default: 1)')
@@ -71,7 +80,7 @@ game_range = trange(params.games) if params.progress else range(params.games)
 for game_num in game_range:
     # Create pacmans
     pacmans = []
-    for i in range(params.pacmans):
+    if not params.no_pacman:
         pacmans.append(Entity(EntityType.PACMAN))
     # Create ghosts
     ghosts = []
@@ -82,13 +91,17 @@ for game_num in game_range:
 
     # Attach controller off pacman
     for pacman in pacmans:
-        controller = TargetSeekerController(game)
+        controller = CONTROLLER_DICT[params.pacman_controller](game)
+        if controller is None:
+            continue
         controller.debug = params.debug
         pacman.attach(controller)
 
     # Attach controller off ghosts
     for ghost, controller in zip(ghosts, params.controllers_name):
         controller = CONTROLLER_DICT[controller](game)
+        if controller is None:
+            continue
         controller.debug = params.debug
         ghost.attach(controller)
 
@@ -102,3 +115,5 @@ for game_num in game_range:
         game.start(map)
         while game.status is not GameStatus.FINISHED:
             game.update(100)
+
+    print(game.duration)

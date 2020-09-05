@@ -8,7 +8,10 @@ import numpy as np
 
 @export
 def parse(message):
-    s = str(message, 'ascii')
+    if isinstance(message, str):
+        s = message
+    else:
+        s = str(message, 'ascii')
     i = s.find(":")
     uid = int(s[:i])
     return _MESSAGES_[uid].from_string(s[i+1:])
@@ -16,6 +19,7 @@ def parse(message):
 
 class NetMessage(ABC):
     uid = 0
+    compound = False
 
     def __repr__(self):
         return str(self)
@@ -81,7 +85,7 @@ class MsgSyncMap(NetMessage):
         height = len(rows[0].split(","))
         terrain = np.zeros((width, height), dtype=np.int)
         for x, row in enumerate(rows):
-            cols = row.split(",")[:-1] if x == 0 else row.split(",")[1:-1]
+            cols = row.split(",")[:-1] if row[-1] == "," else row.split(",")
             for y, el in enumerate(cols):
                 terrain[x, y] = int(el)
         return MsgSyncMap(terrain)
@@ -118,18 +122,35 @@ class MsgSyncEntity(NetMessage):
 
 
 @export
-class MsgYourEntity(NetMessage):
+class MsgDoTick(NetMessage):
     uid = 5
 
-    def __init__(self, uid):
-        self.ent_uid = uid
+    def __init__(self, ticks):
+        self.ticks = ticks
 
     def __str__(self):
-        return f"{self.uid}:{self.ent_uid}"
+        return f"{self.uid}:{self.ticks}"
 
     @classmethod
     def from_string(cls, string):
-        return MsgYourEntity(int(string[0]))
+        return MsgDoTick(float(string))
+
+
+@export
+class MsgCompound(NetMessage):
+    uid = 6
+    compound = True
+
+    def __init__(self, *messages):
+        self.messages = messages
+
+    def __str__(self):
+        s = "@".join([str(m) for m in self.messages])
+        return f"{self.uid}:{s}"
+
+    @classmethod
+    def from_string(cls, string):
+        return MsgCompound(*[parse(s) for s in string.split("@")])
 
 
 _MESSAGES_ = {
@@ -137,5 +158,6 @@ _MESSAGES_ = {
     MsgResult.uid: MsgResult,
     MsgSyncMap.uid: MsgSyncMap,
     MsgSyncEntity.uid: MsgSyncEntity,
-    MsgYourEntity.uid: MsgYourEntity,
+    MsgDoTick.uid: MsgDoTick,
+    MsgCompound.uid: MsgCompound,
 }

@@ -1,7 +1,7 @@
 from manpac.utils.export_decorator import export
 from manpac.controllers.abstract_controller import AbstractController
 from manpac.controllers.net_message import parse, \
-    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity
+    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgDoTick, MsgCompound
 
 import socketserver
 import threading
@@ -43,7 +43,6 @@ class NetServerHandler(socketserver.BaseRequestHandler):
     def handle(self):
         content, socket = self.request
         msg = parse(content)
-        print("Server: received ", msg)
         _CALLBACKS_[msg.uid](self.net, msg, socket, self.client_address)
 
 
@@ -91,7 +90,6 @@ class NetServerController(AbstractController):
         self._send_message_(MsgSyncEntity(entity=self.entity))
 
     def _send_message_(self, msg):
-        print("Server: sent", msg)
         self.socket.sendto(msg.bytes(), self.client_address)
 
     def _accept_(self, socket, client_address):
@@ -101,6 +99,7 @@ class NetServerController(AbstractController):
         self._send_message_(MsgResult(True))
 
     def update(self, ticks):
-        for entity in self.game.entities:
-            if entity != self.entity:
-                self._send_message_(MsgSyncEntity(entity=entity))
+        messages = [MsgSyncEntity(entity=e) for e in self.game.entities
+                    if self.entity != e]
+        messages.append(MsgDoTick(self.game.duration))
+        self._send_message_(MsgCompound(*messages))

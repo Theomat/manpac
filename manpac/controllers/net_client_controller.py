@@ -1,7 +1,7 @@
 from manpac.utils.export_decorator import export
 from manpac.controllers.abstract_controller import AbstractController
 from manpac.controllers.net_message import parse, \
-    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity
+    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgDoTick
 
 import socket
 import threading
@@ -13,25 +13,31 @@ def _callback_result_(net_client_controller, msg, socket):
 
 
 def _callback_sync_entity_(net_client_controller, msg, socket):
-    entity = net_client_controller.game.entities[msg.uid]
+    entity = net_client_controller.game.entities[msg.ent_uid]
     entity.teleport(msg.pos)
     entity.face(msg.direction)
     entity.alive = msg.alive
+    entity.uid = msg.ent_uid
 
     if entity == net_client_controller.entity:
         net_client_controller._send_message_(MsgResult(True))
 
 
 def _callback_sync_map_(net_client_controller, msg, socket):
-    net_client_controller.game.map.terrain = msg.terrain
+    net_client_controller.terrain = msg.terrain
     net_client_controller._send_message_(MsgResult(True))
     net_client_controller.has_started = True
+
+
+def _callback_do_tick_(net_client_controller, msg, socket):
+    net_client_controller.net_ticks = msg.ticks - net_client_controller.game.duration
 
 
 _CALLBACKS_ = {
     MsgResult.uid: _callback_result_,
     MsgSyncEntity.uid: _callback_sync_entity_,
-    MsgSyncMap.uid: _callback_sync_map_
+    MsgSyncMap.uid: _callback_sync_map_,
+    MsgDoTick.uid: _callback_do_tick_,
 }
 
 
@@ -46,6 +52,11 @@ class NetClientController(AbstractController):
         self.has_started = False
         self.controller = controller
 
+        self.net_ticks = 0
+        self.taken = 0
+
+        self.max_ticks_in_advance = 30
+
         self.host = host
         self.port = port
 
@@ -59,19 +70,26 @@ class NetClientController(AbstractController):
         server_thread.start()
 
         self.socket.connect((self.host, self.port))
-        print("Client: connected")
         self._notify_(MsgJoin(self.entity.type))
 
     def _listen_(self):
         while not self.socket._closed:
-            msg = parse(self.socket.recv(self.buffer_size))
-            print("Client: received=", msg)
-            _CALLBACKS_[msg.uid](self, msg, self.socket)
+            data = self.socket.recv(self.buffer_size)
+            msg = parse(data)
+            if msg.compound:
+                for msg in msg.messages:
+                    _CALLBACKS_[msg.uid](self, msg, self.socket)
+            else:
+                _CALLBACKS_[msg.uid](self, msg, self.socket)
 
     def on_game_start(self):
-        while not self.has_started:
+        self.entity.uid = -5
+        while not self.has_started and not self.entity.uid >= 0:
             time.sleep(.1)
         self.controller.on_game_start()
+        self.game.map.terrain = self.terrain
+        self.game.map.compiled = False
+        self.game.map.compile()
 
     def on_game_end(self):
         self.socket.close()
@@ -100,8 +118,15 @@ class NetClientController(AbstractController):
         self._send_message_(MsgResult(True))
 
     def update(self, ticks):
-        self.controller.update(ticks)
+        if -self.net_ticks >= self.max_ticks_in_advance:
+            return
+        if self.net_ticks >= self.max_ticks_in_advance:
+            ticks *= 2
+
+        if self.entity.alive:
+            self.controller.update(ticks)
         self._send_message_(MsgSyncEntity(entity=self.entity))
-        for entity in self.game.entities:
-            if entity != self.entity:
-                self.game.map.move(entity, ticks)
+        if self.net_ticks <= 0:
+            for entity in self.game.entities:
+                if entity != self.entity:
+                    self.game.map.move(entity, ticks)
