@@ -62,13 +62,12 @@ class TargetSeekerController(AbstractController):
             the old target
         """
         self._last_path_update = 0
-        self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
+        self.path, d = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
         self.on_change_path()
 
     def on_change_path(self):
         self._last_path_update = 0
         if self.path:
-            self.path.append(self.aggro.pos)
             self._make_new_target_(self.path[0])
         else:
             self._target = None
@@ -81,7 +80,7 @@ class TargetSeekerController(AbstractController):
             self.on_change_target(old)
         else:
             # Compute new path
-            self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
+            self.path, d = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
             self.on_change_path()
         self._last_aggro_update = 0
 
@@ -110,7 +109,7 @@ class TargetSeekerController(AbstractController):
 
         # Update path if it's time
         if not self.path or self._last_path_update >= self.path_refresh:
-            self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
+            self.path, d = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
             self.on_change_path()
 
         if self.debug:
@@ -138,7 +137,7 @@ class TargetSeekerController(AbstractController):
                 ticks -= ticks_used
                 directions = Direction.representing(self.entity.map_position + .5 - self.entity.pos)
 
-            self.path = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
+            self.path, d = self.game.map.path_to(self.entity.map_position, self.game.map.closest_walkable(self.aggro.pos))
             self.on_change_path()
 
         # If we can reach checkpoint do it

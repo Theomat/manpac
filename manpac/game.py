@@ -34,6 +34,8 @@ class Game():
             the map this game will take place on
         """
         assert self.status is GameStatus.NOT_STARTED
+        map.reset()
+        map.compile()
         self.map = map
         self.duration = 0
         self.ghosts = 0

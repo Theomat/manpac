@@ -2,7 +2,7 @@ from manpac.utils import export
 from manpac.entity_type import EntityType
 from manpac.cell import Cell
 from manpac.direction import Direction
-from queue import PriorityQueue
+from manpac.path_graph import PathGraph
 
 
 import numpy as np
@@ -66,6 +66,23 @@ class Map():
         self.boost_duration = 600
         # Grab size distance of boost
         self.boost_size = .1
+
+        self.compiled = False
+
+    def reset(self):
+        """
+        Reset this map's state.
+        """
+        self.ghost_boosts = []
+        self.pacman_boosts = []
+
+    def compile(self):
+        """
+        Compile the map data for optimized pathfinding.
+        """
+        if not self.compiled:
+            self.compiled = True
+            self.path_graph = PathGraph(self)
 
     @property
     def width(self):
@@ -192,9 +209,6 @@ class Map():
             cells_occupied_by_entity.append(coord)
         return cells_occupied_by_entity
 
-    def _heuristic_(self, abs_dist, distance_traveled):
-        return abs_dist * 2 + distance_traveled
-
     def path_to(self, src, dst):
         """
         Find a list of walkable tiles from src to dst.
@@ -213,41 +227,7 @@ class Map():
         A list of tiles that needs to be reached where a direction change occurs if a path exists.
         type: **numpy.ndarray list**
         """
-        src = src.astype(dtype=np.int)
-        dst = dst.astype(dtype=np.int)
-        d = np.sum(np.abs(dst - src))
-        if not self.is_walkable(dst):
-            return False
-        if d == 0:
-            return []
-        self.path_buffer[:, :] = False
-        paths = PriorityQueue()
-        # (remaining_distance, dist_done, path_num, last_direction, checkpoints_list, last_position)
-        paths.put([d, 0, 0, None, [], src, False])
-        path_number = 0  # Used to avoid bug and to define an ordering
-        while not paths.empty():
-            score, dist_done, path_num, last_dir, pts, last_pos, flagged_pt = paths.get()
-            for direction in Direction:
-                new_cell = last_pos + direction.vector
-                # if already walked skip
-                if self.path_buffer[new_cell[0], new_cell[1]]:
-                    continue
-                # if not walkable skip
-                if not self.is_walkable(new_cell):
-                    continue
-                self.path_buffer[new_cell[0], new_cell[1]] = True
-                # If we change direction
-                if last_dir != direction and last_dir is not None:
-                    new_pts = pts[:]
-                    new_pts.append(last_pos)
-                    pts = new_pts
-                new_score = np.sum(np.abs(dst - new_cell))
-                if new_score == 0:
-                    pts.append(dst)
-                    return pts
-                path_number += 1
-                paths.put((self._heuristic_(new_score, dist_done + 1), dist_done, path_number, direction, pts, new_cell, False))
-        return False
+        return self.path_graph.path(src, dst)
 
     def how_far(self, entity, max_distance):
         """

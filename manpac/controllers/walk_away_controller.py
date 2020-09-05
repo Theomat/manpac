@@ -3,8 +3,6 @@ from manpac.direction import Direction
 from manpac.controllers.abstract_controller import AbstractController
 from manpac.entity_type import EntityType
 
-import numpy as np
-
 
 @export
 class WalkAwayController(AbstractController):
@@ -32,10 +30,7 @@ class WalkAwayController(AbstractController):
         for direction in choices:
             per_dir_min = 50
             for pac in pacs:
-                test_path = self.game.map.path_to(pac.pos, self.entity.map_position + direction.vector)
-                tmp_dist = 0
-                for i in range(len(test_path)-1):
-                    tmp_dist += np.sum(np.abs(test_path[i+1] - test_path[i]))
+                test_path, tmp_dist = self.game.map.path_to(pac.pos, self.entity.map_position + direction.vector)
                 if tmp_dist < per_dir_min:
                     per_dir_min = tmp_dist
             if per_dir_min > max_min_square_dist:
