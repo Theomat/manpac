@@ -60,7 +60,6 @@ class Interface():
         pygame.init()
         pygame.display.set_caption('Manpac')
         self.screen = pygame.display.set_mode((900, 600))
-        self.last_updated = pygame.time.get_ticks()
         self.width, self.height = self.screen.get_size()
         scale_x = self.width / map.width
         scale_y = self.height / map.height
@@ -94,6 +93,7 @@ class Interface():
             self.entities_drawer.append(drawer)
 
         # Loop
+        self.last_updated = pygame.time.get_ticks()
         while self.game.status is GameStatus.ONGOING:
             for event in pygame.event.get():
                 if event.type == QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
