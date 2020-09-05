@@ -79,6 +79,10 @@ class Game():
         # Update status
         if self.ghosts <= 1:
             self.status = GameStatus.FINISHED
+            # Fire on_game_end event
+            for entity in self.entities:
+                if entity.controller:
+                    entity.controller.on_game_end()
 
     def _check_collisions_(self):
         cpy = self.entities[:]

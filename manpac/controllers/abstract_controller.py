@@ -35,6 +35,12 @@ class AbstractController(ABC):
         """
         pass
 
+    def on_game_end(self):
+        """
+        Fired when the game ends.
+        """
+        pass
+
     def on_death(self):
         """
         Fired upon the death of the entity this controlled was attached to.
