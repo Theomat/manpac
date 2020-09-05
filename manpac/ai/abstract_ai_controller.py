@@ -12,9 +12,12 @@ class AbstractAIController(AbstractController, ABC):
     @abstractmethod
     def init_state(self):
         """
-        Fired the first time update is called.
+        Fired just before the game starts.
         """
         pass
+
+    def on_game_start(self):
+        self.init_state()
 
     @abstractmethod
     def get_action(self, ticks):
@@ -34,9 +37,6 @@ class AbstractAIController(AbstractController, ABC):
         pass
 
     def update(self, ticks):
-        if not hasattr(self, "init"):
-            self.init_state()
-            self.init = True
         ticks_used = 1
         while ticks > 0 or ticks_used > .05:
             direction, ticks_used, boost_use = self.get_action(ticks)
