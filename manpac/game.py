@@ -23,6 +23,7 @@ class Game():
         self.entities = list(entities)
         self.status = GameStatus.NOT_STARTED
         self.duration = 0
+        self.map = None
 
     def start(self, map):
         """
