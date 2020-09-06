@@ -19,7 +19,7 @@ class PathGraph():
 
     def __init__(self, map):
         self.map = map
-        self.nodes = np.zeros_like(map.terrain) - 1
+        self.nodes = np.zeros_like(map.terrain, dtype=np.int) - 1
         self.nodes_data = []
         self.buffer = np.zeros_like(self.nodes, dtype=np.bool)
         self.debug = False
