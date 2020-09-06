@@ -88,13 +88,11 @@ class Interface():
         winner = self.game.winner
         if winner is None:
             return
-        for entity in self.game.entities:
-            if entity.type is EntityType.GHOST:
-                if entity.alive:
-                    for entity_drawer in self.entities_drawer:
-                        if entity_drawer.entity == entity:
-                            #drawer = [d for d in self.entities_drawer if d.entity == winner][0]
-                            entity_drawer.draw_winner_icon(self.screen, self.width / 2, self.height / 2)
+
+        for entity_drawer in self.entities_drawer:
+            if entity_drawer.entity == winner:
+                entity_drawer.draw_winner_icon(self.screen, self.width / 2, self.height / 2)
+                break
 
     def start(self, map):
         self.__pygame_init__(map)
