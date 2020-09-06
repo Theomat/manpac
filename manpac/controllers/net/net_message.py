@@ -238,6 +238,47 @@ class MsgStartGame(NetMessage):
     uid = 11
 
 
+@export
+class MsgBoostUse(NetMessage):
+    uid = 12
+
+    def __init__(self, ent_uid):
+        self.ent_uid = ent_uid
+
+    def __str__(self):
+        return "{}:{}".format(self.uid, self.ent_uid)
+
+    @classmethod
+    def from_string(cls, string):
+        return MsgBoostUse(int(string))
+
+
+@export
+class MsgSyncModifiers(NetMessage):
+    uid = 13
+
+    def __init__(self,  ent_uid, modifiers):
+        self.ent_uid = ent_uid
+        self.modifiers = modifiers
+        self.boost_parsed = not self.modifiers or not isinstance(self.modifiers[0], str)
+
+    def __str__(self):
+        b = "@".join([boost_serializer.serialize(boost) for boost in self.modifiers])
+        return "{}:{}/{}".format(self.uid, self.ent_uid, b)
+
+    def parse_boost(self, game):
+        if self.boost_parsed:
+            return
+        self.modifiers = [boost_serializer.parse(boost, game) for boost in self.modifiers]
+        self.modifiers = [b for b in self.modifiers if b]
+        self.boost_parsed = True
+
+    @classmethod
+    def from_string(cls, string):
+        data = string.split("/")
+        return MsgSyncModifiers(int(data[0]), data[1].split("@"))
+
+
 _MESSAGES_ = {
     MsgJoin.uid: MsgJoin,
     MsgResult.uid: MsgResult,
@@ -250,4 +291,6 @@ _MESSAGES_ = {
     MsgBoostPickup.uid: MsgBoostPickup,
     MsgYourEntity.uid: MsgYourEntity,
     MsgStartGame.uid: MsgStartGame,
+    MsgBoostUse.uid: MsgBoostUse,
+    MsgSyncModifiers.uid: MsgSyncModifiers,
 }

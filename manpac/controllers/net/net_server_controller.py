@@ -2,7 +2,8 @@ from manpac.utils.export_decorator import export
 from manpac.controllers.abstract_controller import AbstractController
 from manpac.controllers.net.net_message import parse, \
     MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgSyncClock, MsgCompound, \
-    MsgSyncMapBoosts, MsgEndGame, MsgBoostPickup, MsgYourEntity, MsgStartGame
+    MsgSyncMapBoosts, MsgEndGame, MsgBoostPickup, MsgYourEntity, MsgStartGame, \
+    MsgBoostUse, MsgSyncModifiers
 
 import socketserver
 import threading
@@ -26,16 +27,22 @@ def _callback_result_(net_server_controller, msg, socket, client_address):
 def _callback_sync_entity_(net_server_controller, msg, socket, client_address):
     entity = net_server_controller.entity
     if net_server_controller.game.map._do_boost_pickup_(entity, np.sum(np.abs(entity.pos - msg.pos))):
-        pass  # TODO: synchron buff
+        pass
     entity.face(msg.direction)
     entity.teleport(msg.pos)
     entity.alive = msg.alive
+
+
+def _callback_boost_use_(net_server_controller, msg, socket, client_address):
+    net_server_controller.entity.use_modifier()
+    net_server_controller._send_message_(MsgSyncEntity(entity=net_server_controller.entity))
 
 
 _CALLBACKS_ = {
     MsgJoin.uid: _callback_join_,
     MsgResult.uid: _callback_result_,
     MsgSyncEntity.uid: _callback_sync_entity_,
+    MsgBoostUse.uid: _callback_boost_use_,
 }
 
 
@@ -67,6 +74,9 @@ class NetServerController(AbstractController):
         self.client_address = None
         self.first_tick = True
 
+        self.last_holdings = []
+        self.last_modifiers = []
+
     def on_attach(self, entity):
         super(NetServerController, self).on_attach(entity)
         self.free = True
@@ -77,6 +87,8 @@ class NetServerController(AbstractController):
         # UID for each
         for i, entity in enumerate(self.game.entities):
             entity.uid = i
+            self.last_holdings.append([])
+            self.last_modifiers.append([])
         self._notify_(MsgSyncMap(self.game.map.terrain))
         self._send_message_(MsgYourEntity(self.entity.uid))
         for entity in self.game.entities:
@@ -116,3 +128,18 @@ class NetServerController(AbstractController):
         messages.append(MsgSyncClock(self.game.duration))
         self._send_message_(MsgCompound(*messages))
         self._send_message_(MsgSyncMapBoosts(self.game.map.ghost_boosts, self.game.map.pacman_boosts))
+        for i, entity in enumerate(self.game.entities):
+            if entity == self.entity:
+                continue
+            if entity.holding != self.last_holdings[i]:
+                if entity.holding:
+                    self._send_message_(MsgBoostPickup(entity.uid, entity.holding))
+                else:
+                    self._send_message_(MsgBoostUse(entity.uid))
+                self.last_holdings[i] = entity.holding
+        for i, entity in enumerate(self.game.entities):
+            if entity == self.entity:
+                continue
+            if entity.modifiers != self.last_modifiers[i]:
+                self._send_message_(MsgSyncModifiers(entity.uid, entity.modifiers))
+                self.last_modifiers[i] = entity.modifiers[:]

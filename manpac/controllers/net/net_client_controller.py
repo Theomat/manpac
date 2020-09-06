@@ -3,7 +3,8 @@ from manpac.game_status import GameStatus
 from manpac.controllers.abstract_controller import AbstractController
 from manpac.controllers.net.net_message import parse, \
     MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgSyncClock, MsgSyncMapBoosts, \
-    MsgEndGame, MsgBoostPickup, MsgYourEntity, MsgStartGame
+    MsgEndGame, MsgBoostPickup, MsgYourEntity, MsgStartGame, MsgBoostUse, \
+    MsgSyncModifiers
 
 import socket
 import threading
@@ -22,7 +23,7 @@ def _callback_sync_entity_(net_client_controller, msg, socket):
 
     if entity == net_client_controller.entity:
         net_client_controller._send_message_(MsgResult(True))
-
+    net_client_controller.ticks_since_last_upd = 0
     entity.uid = msg.ent_uid
 
 
@@ -67,7 +68,20 @@ def _callback_your_entity_(net_client_controller, msg, socket):
 
 
 def _callback_start_game_(net_client_controller, msg, socket):
-    net_client_controller.game.status = GameStatus.ONGOING
+    net_client_controller.has_game_started = True
+    if net_client_controller.ready_to_start:
+        net_client_controller.game.status = GameStatus.ONGOING
+
+
+def _callback_boost_use_(net_client_controller, msg, socket):
+    entity = net_client_controller.game.entities[msg.ent_uid]
+    entity.use_modifier()
+
+
+def _callback_sync_modifiers_(net_client_controller, msg, socket):
+    msg.parse_boost(net_client_controller.game)
+    entity = net_client_controller.game.entities[msg.ent_uid]
+    entity.modifiers = msg.modifiers
 
 
 _CALLBACKS_ = {
@@ -80,6 +94,8 @@ _CALLBACKS_ = {
     MsgBoostPickup.uid: _callback_boost_pickup_,
     MsgYourEntity.uid: _callback_your_entity_,
     MsgStartGame.uid: _callback_start_game_,
+    MsgBoostUse.uid: _callback_boost_use_,
+    MsgSyncModifiers.uid: _callback_sync_modifiers_,
 }
 
 
@@ -95,9 +111,12 @@ class NetClientController(AbstractController):
         self.controller = controller
 
         self.has_map = False
+        self.has_game_started = False
+        self.ready_to_start = False
 
         self.net_ticks = 0
         self.max_ticks_in_advance = 30
+        self.ticks_since_last_upd = 0
 
         self.host = host
         self.port = port
@@ -139,8 +158,9 @@ class NetClientController(AbstractController):
         self.game.map.compiled = False
         self.game.map.compile()
 
-        if self.game.status is GameStatus.ONGOING:
+        if not self.has_game_started:
             self.game.status = GameStatus.NOT_STARTED
+        self.ready_to_start = True
 
     def on_game_end(self):
         self.socket.close()
@@ -171,11 +191,16 @@ class NetClientController(AbstractController):
         self.socket = socket
         self._send_message_(MsgResult(True))
 
+    def on_boost_use(self):
+        self.controller.on_boost_use()
+        self._send_message_(MsgBoostUse(self.entity.uid))
+
     def update(self, ticks):
-        if -self.net_ticks >= self.max_ticks_in_advance:
+        if self.ticks_since_last_upd >= self.max_ticks_in_advance:
             return
         if self.net_ticks >= self.max_ticks_in_advance:
             ticks *= 2
+        self.ticks_since_last_upd += ticks
 
         if self.entity.alive:
             self.controller.update(ticks)
