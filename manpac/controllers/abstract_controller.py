@@ -43,7 +43,13 @@ class AbstractController(ABC):
 
     def on_boost_pickup(self):
         """
-        Fired when a boost is picked up.
+        Fired just after a boost is picked up.
+        """
+        pass
+
+    def on_boost_use(self):
+        """
+        Fired just before a boost is used.
         """
         pass
 

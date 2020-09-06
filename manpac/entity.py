@@ -182,6 +182,8 @@ class Entity():
         """
         if self.holding:
             self.modifiers.append(self.holding)
+            if self.controller:
+                self.controller.on_boost_use()
             self.holding.use(self)
             self.holding = None
 
