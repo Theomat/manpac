@@ -1,5 +1,7 @@
 from manpac.utils.export_decorator import export
+from manpac.game_status import GameStatus
 from manpac.controllers.abstract_controller import AbstractController
+from manpac.modifiers.swap_modifier import SwapModifier
 from manpac.controllers.net.net_message import parse, \
     MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgSyncClock, MsgCompound, \
     MsgSyncMapBoosts, MsgEndGame, MsgBoostPickup, MsgYourEntity, MsgStartGame, \
@@ -26,11 +28,12 @@ def _callback_result_(net_server_controller, msg, socket, client_address):
 
 def _callback_sync_entity_(net_server_controller, msg, socket, client_address):
     entity = net_server_controller.entity
-    if net_server_controller.game.map._do_boost_pickup_(entity, np.sum(np.abs(entity.pos - msg.pos))):
-        pass
+    dist = np.sum(np.abs(entity.pos - msg.pos))
+    net_server_controller.game.map._do_boost_pickup_(entity, dist)
     entity.face(msg.direction)
     entity.teleport(msg.pos)
-    entity.alive = msg.alive
+    if not msg.alive:
+        entity.kill()
 
 
 def _callback_boost_use_(net_server_controller, msg, socket, client_address):
@@ -107,6 +110,16 @@ class NetServerController(AbstractController):
     def on_death(self):
         self._send_message_(MsgSyncEntity(entity=self.entity))
 
+        def keep_updated():
+            while self.game.status is GameStatus.ONGOING:
+                self.update(1)
+                time.sleep(.02)
+
+        upd_thread = threading.Thread(target=keep_updated)
+        # Exit the server thread when the main thread terminates
+        upd_thread.daemon = True
+        upd_thread.start()
+
     def on_boost_pickup(self):
         self._send_message_(MsgBoostPickup(self.entity.uid, self.entity.holding))
 
@@ -118,6 +131,12 @@ class NetServerController(AbstractController):
         self.socket = socket
         self.free = False
         self._send_message_(MsgResult(True))
+
+    def _should_send_pos_upd_(self, li):
+        for boost in li:
+            if isinstance(boost, SwapModifier):
+                return True
+        return False
 
     def update(self, ticks):
         if self.first_tick:
@@ -137,9 +156,10 @@ class NetServerController(AbstractController):
                 else:
                     self._send_message_(MsgBoostUse(entity.uid))
                 self.last_holdings[i] = entity.holding
+        # Sync modifiers
         for i, entity in enumerate(self.game.entities):
-            if entity == self.entity:
-                continue
             if entity.modifiers != self.last_modifiers[i]:
                 self._send_message_(MsgSyncModifiers(entity.uid, entity.modifiers))
+                if self._should_send_pos_upd_(self.last_modifiers[i]):
+                    self._send_message_(MsgSyncEntity(entity=self.entity))
                 self.last_modifiers[i] = entity.modifiers[:]

@@ -19,12 +19,11 @@ def _callback_sync_entity_(net_client_controller, msg, socket):
     entity = net_client_controller.game.entities[msg.ent_uid]
     entity.teleport(msg.pos)
     entity.face(msg.direction)
-    entity.alive = msg.alive
-
-    if entity == net_client_controller.entity:
-        net_client_controller._send_message_(MsgResult(True))
-    net_client_controller.ticks_since_last_upd = 0
     entity.uid = msg.ent_uid
+    if not msg.alive:
+        entity.kill()
+
+    net_client_controller.ticks_since_last_upd = 0
 
 
 def _callback_sync_map_(net_client_controller, msg, socket):

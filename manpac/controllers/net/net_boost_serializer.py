@@ -14,7 +14,7 @@ def serialize(boost):
     elif isinstance(boost, SpeedModifier):
         text = "sp{};{}".format(boost.remaining_duration, boost.speed_multiplier)
     elif isinstance(boost, SwapModifier):
-        text = "sw{}".format(boost.remaining_duration)
+        text = "sw{};{}".format(boost.range, boost.remaining_duration)
     return text
 
 
@@ -29,4 +29,4 @@ def parse(text, game):
     elif identifier == "sp":
         return SpeedModifier(game, float(data[0]), float(data[1]))
     elif identifier == "sw":
-        return SwapModifier(game, float(data[0]))
+        return SwapModifier(game, float(data[0]), float(data[1]))
