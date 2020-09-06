@@ -125,5 +125,3 @@ for game_num in game_range:
         game.start(map)
         while game.status is not GameStatus.FINISHED:
             game.update(100)
-
-    print(game.duration)
