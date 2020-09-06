@@ -12,8 +12,8 @@ from manpac.controllers.human_controller import HumanController
 from manpac.controllers.random_walk_controller import RandomWalkController
 from manpac.controllers.walk_away_controller import WalkAwayController
 from manpac.controllers.target_seeker_controller import TargetSeekerController
-from manpac.controllers.net_server_controller import NetServerController
-from manpac.controllers.net_client_controller import NetClientController
+from manpac.controllers.net.net_server_controller import NetServerController
+from manpac.controllers.net.net_client_controller import NetClientController
 
 from manpac.ui.interface import Interface
 
