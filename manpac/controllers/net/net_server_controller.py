@@ -27,13 +27,7 @@ def _callback_result_(net_server_controller, msg, socket, client_address):
 
 
 def _callback_sync_entity_(net_server_controller, msg, socket, client_address):
-    entity = net_server_controller.entity
-    dist = np.sum(np.abs(entity.pos - msg.pos))
-    net_server_controller.game.map._do_boost_pickup_(entity, dist)
-    entity.face(msg.direction)
-    entity.teleport(msg.pos)
-    if not msg.alive:
-        entity.kill()
+    net_server_controller.sync_message = msg
 
 
 def _callback_boost_use_(net_server_controller, msg, socket, client_address):
@@ -76,6 +70,8 @@ class NetServerController(AbstractController):
         self.free = False
         self.client_address = None
         self.first_tick = True
+
+        self.sync_message = None
 
         self.last_holdings = []
         self.last_modifiers = []
@@ -147,6 +143,17 @@ class NetServerController(AbstractController):
         messages.append(MsgSyncClock(self.game.duration))
         self._send_message_(MsgCompound(*messages))
         self._send_message_(MsgSyncMapBoosts(self.game.map.ghost_boosts, self.game.map.pacman_boosts))
+        # Sync
+        if self.sync_message:
+            entity = self.entity
+            msg = self.sync_message
+            dist = np.sum(np.abs(entity.pos - msg.pos))
+            self.game.map._do_boost_pickup_(entity, dist)
+            entity.face(msg.direction)
+            entity.teleport(msg.pos)
+            self.sync_message = None
+
+        # Sync boost use / boost pickup
         for i, entity in enumerate(self.game.entities):
             if entity == self.entity:
                 continue
