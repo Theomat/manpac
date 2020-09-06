@@ -41,6 +41,12 @@ class AbstractController(ABC):
         """
         pass
 
+    def on_boost_pickup(self):
+        """
+        Fired when a boost is picked up.
+        """
+        pass
+
     def on_death(self):
         """
         Fired upon the death of the entity this controlled was attached to.

@@ -171,6 +171,8 @@ class Entity():
         """
         if not self.holding:
             self.holding = modifier
+            if self.controller:
+                self.controller.on_boost_pickup()
             modifier.on_pickup(self)
 
     def use_modifier(self):
