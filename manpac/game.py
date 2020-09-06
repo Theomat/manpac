@@ -24,6 +24,7 @@ class Game():
         self.status = GameStatus.NOT_STARTED
         self.duration = 0
         self.map = None
+        self._fired_on_end = False
 
     def start(self, map):
         """
@@ -48,12 +49,12 @@ class Game():
                 self.ghosts += 1
         # Spawn entities
         self.map.spawn_entities(*self.entities)
+        # Update status
+        self.status = GameStatus.ONGOING if self.ghosts > 1 else GameStatus.FINISHED
         # Fire on_game_start event
         for entity in self.entities:
             if entity.controller:
                 entity.controller.on_game_start()
-        # Update status
-        self.status = GameStatus.ONGOING if self.ghosts > 1 else GameStatus.FINISHED
 
     def update(self, ticks):
         """
@@ -64,7 +65,16 @@ class Game():
         - *ticks*: (**float**)
             the number of ticks elapsed
         """
-        assert self.status is GameStatus.ONGOING
+        if(self.status is GameStatus.NOT_STARTED):
+            return
+        if(self.status is GameStatus.FINISHED):
+            if not self._fired_on_end:
+                self._fired_on_end = True
+                # Fire on_game_end event
+                for entity in self.entities:
+                    if entity.controller:
+                        entity.controller.on_game_end()
+            return
         self.duration += ticks
 
         while ticks > MAX_TICK_UNIT and self.status is GameStatus.ONGOING:
@@ -80,6 +90,7 @@ class Game():
         # Update status
         if self.ghosts <= 1:
             self.status = GameStatus.FINISHED
+            self._fired_on_end = True
             # Fire on_game_end event
             for entity in self.entities:
                 if entity.controller:
