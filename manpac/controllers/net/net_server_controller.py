@@ -19,7 +19,7 @@ def _callback_join_(net_server_controller, msg, socket, client_address):
         if net_server_controller.entity.type == msg.type:
             net_server_controller._accept_(socket, client_address)
     else:
-        socket.sendto(MsgResult(False).bytes(), client_address)
+        socket.sendto(MsgResult(client_address == net_server_controller.client_address).bytes(), client_address)
 
 
 def _callback_result_(net_server_controller, msg, socket, client_address):
