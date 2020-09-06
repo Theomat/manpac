@@ -8,6 +8,7 @@ from manpac.cell import Cell
 from manpac.game_status import GameStatus
 from manpac.entity_type import EntityType
 from manpac.ui.entity_drawer import EntityDrawer
+from manpac.controllers.net.net_server_controller import NetServerController
 import manpac.ui.draw_modifier as modifier_drawer
 
 
@@ -93,10 +94,21 @@ class Interface():
             drawer = EntityDrawer(entity, self.scale, name, ghost)
             self.entities_drawer.append(drawer)
 
+        has_server = False
+        for entity in self.game.entities:
+            if isinstance(entity.controller, NetServerController):
+                has_server = True
+                break
+
+        self.draw()
+        pygame.display.update()
+        if has_server:
+            time.sleep(3)
+
         while self.game.status is GameStatus.NOT_STARTED:
             self.draw()
             pygame.display.update()
-            time.sleep(REFRESH_DELAY)
+            time.sleep(REFRESH_DELAY / 1000.)
 
         # Loop
         self.last_updated = pygame.time.get_ticks()
