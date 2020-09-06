@@ -3,22 +3,22 @@ from os import environ
 # Hide pygame hello message
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
-from manpac.maps.map_pacman import MapPacman
-from manpac.entity import Entity
-from manpac.entity_type import EntityType
-from manpac.game import Game
-from manpac.game_status import GameStatus
-from manpac.controllers.human_controller import HumanController
-from manpac.controllers.random_walk_controller import RandomWalkController
-from manpac.controllers.walk_away_controller import WalkAwayController
-from manpac.controllers.target_seeker_controller import TargetSeekerController
-from manpac.controllers.net.net_server_controller import NetServerController
-from manpac.controllers.net.net_client_controller import NetClientController
-from manpac.ui.interface import Interface
+from manpac.maps.map_pacman import MapPacman  # NOQA
+from manpac.entity import Entity  # NOQA
+from manpac.entity_type import EntityType  # NOQA
+from manpac.game import Game  # NOQA
+from manpac.game_status import GameStatus  # NOQA
+from manpac.controllers.human_controller import HumanController  # NOQA
+from manpac.controllers.random_walk_controller import RandomWalkController  # NOQA
+from manpac.controllers.walk_away_controller import WalkAwayController  # NOQA
+from manpac.controllers.target_seeker_controller import TargetSeekerController  # NOQA
+from manpac.controllers.net.net_server_controller import NetServerController  # NOQA
+from manpac.controllers.net.net_client_controller import NetClientController  # NOQA
+from manpac.ui.interface import Interface  # NOQA
 
-import argparse
-from tqdm import trange
-import time
+import argparse  # NOQA
+from tqdm import trange  # NOQA
+import time  # NOQA
 
 
 MAP_DICT = {
@@ -126,14 +126,10 @@ for game_num in game_range:
     else:
         game.start(map)
 
-        has_server = False
         for entity in game.entities:
             if isinstance(entity.controller, NetServerController):
-                has_server = True
+                time.sleep(3)
                 break
-
-        if has_server:
-            time.sleep(3)
 
         while game.status is GameStatus.NOT_STARTED:
             time.sleep(.01)
