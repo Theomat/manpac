@@ -44,8 +44,8 @@ default_map = list(MAP_DICT.keys())[0]
 game_options.add_argument('-c', '--controllers', dest='controllers_name',
                           action='store', type=str,
                           choices=list(CONTROLLER_DICT.keys()),
-                          nargs=4, required=True,
-                          help='the controllers pacman and ghosts will use (required)')
+                          nargs='*', default=[],
+                          help='the controllers pacman and ghosts will use')
 game_options.add_argument('-m', '--map', dest='map_name',
                           action='store', default=default_map, type=str,
                           choices=list(MAP_DICT.keys()),
@@ -90,6 +90,8 @@ for game_num in game_range:
     pacmans = []
     if not params.no_pacman:
         pacmans.append(Entity(EntityType.PACMAN))
+
+    params.controllers_name += ["n"] * (4 - len(params.controllers_name))
     # Create ghosts
     ghosts = []
     for i in range(4):
