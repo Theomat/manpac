@@ -61,7 +61,6 @@ class Game():
         for entity in self.entities:
             if entity.alive and entity.type is EntityType.GHOST:
                 self.winner = entity
-                print("Found winner :", self.winner)
                 return
 
     def update(self, ticks):
