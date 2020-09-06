@@ -14,11 +14,11 @@ from manpac.controllers.walk_away_controller import WalkAwayController
 from manpac.controllers.target_seeker_controller import TargetSeekerController
 from manpac.controllers.net.net_server_controller import NetServerController
 from manpac.controllers.net.net_client_controller import NetClientController
-
 from manpac.ui.interface import Interface
 
 import argparse
 from tqdm import trange
+import time
 
 
 MAP_DICT = {
@@ -31,8 +31,7 @@ CONTROLLER_DICT = {
     "rw": lambda game, params: RandomWalkController(game),
     "wa": lambda game, params: WalkAwayController(game, 10),
     "ns": lambda game, params: NetServerController(game, params.host, params.port),
-    "nc": lambda game, params: NetClientController(HumanController(game), params.host, params.port),
-    "ncrw": lambda game, params: NetClientController(RandomWalkController(game), params.host, params.port)
+    "nc": lambda game, params: NetClientController(HumanController(game), params.host, params.port)
 }
 # =============================================================================
 #  ARGUMENT PARSING
@@ -71,6 +70,9 @@ misc_options.add_argument('--ui', dest='ui',
 misc_options.add_argument('-d', '--debug', dest='debug',
                           action='store_true', default=False,
                           help='activate debug mode')
+misc_options.add_argument('-f', '--freq', dest='freq',
+                          action='store', default=0, type=int,
+                          help='frequence of the game update when no ui (default: unlimited)')
 
 net_options = parser.add_argument_group('net options')
 net_options.add_argument('--host', dest='host',
@@ -123,5 +125,20 @@ for game_num in game_range:
         interface.start(map)
     else:
         game.start(map)
+
+        has_server = False
+        for entity in game.entities:
+            if isinstance(entity.controller, NetServerController):
+                has_server = True
+                break
+
+        if has_server:
+            time.sleep(3)
+
+        while game.status is GameStatus.NOT_STARTED:
+            time.sleep(.01)
+        sleep_time = 1 / params.freq if params.freq > 0 else 0
         while game.status is not GameStatus.FINISHED:
-            game.update(100)
+            game.update(1)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
