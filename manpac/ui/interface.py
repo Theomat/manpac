@@ -1,6 +1,7 @@
 import sys
 import pygame
 from pygame.locals import QUIT
+import time
 
 from manpac.utils import export
 from manpac.cell import Cell
@@ -91,6 +92,11 @@ class Interface():
                 ghost += 1
             drawer = EntityDrawer(entity, self.scale, name, ghost)
             self.entities_drawer.append(drawer)
+
+        while self.game.status is GameStatus.NOT_STARTED:
+            self.draw()
+            pygame.display.update()
+            time.sleep(REFRESH_DELAY)
 
         # Loop
         self.last_updated = pygame.time.get_ticks()
