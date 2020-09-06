@@ -122,7 +122,7 @@ class Game():
 
     def on_collision(self, entity1, entity2):
         """
-        Procees to do the resolution of a collision between the two entities.
+        Process to do the resolution of a collision between the two entities.
         Parameters
         -----------
         - *entity1*, *entity2*: (**Entity**)
