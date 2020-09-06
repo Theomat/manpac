@@ -220,7 +220,8 @@ class Entity():
         """
         Kill this entity.
         """
-        self.alive = False
-        self.moving = False
-        if self.controller:
-            self.controller.on_death()
+        if self.alive:
+            self.alive = False
+            self.moving = False
+            if self.controller:
+                self.controller.on_death()
