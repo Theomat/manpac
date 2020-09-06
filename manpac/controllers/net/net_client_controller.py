@@ -1,7 +1,9 @@
 from manpac.utils.export_decorator import export
+from manpac.game_status import GameStatus
 from manpac.controllers.abstract_controller import AbstractController
-from manpac.controllers.net_message import parse, \
-    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgDoTick, MsgSyncMapBoosts
+from manpac.controllers.net.net_message import parse, \
+    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgSyncClock, MsgSyncMapBoosts, \
+    MsgEndGame, MsgBoostPickup
 
 import socket
 import threading
@@ -29,7 +31,7 @@ def _callback_sync_map_(net_client_controller, msg, socket):
     net_client_controller.has_started = True
 
 
-def _callback_do_tick_(net_client_controller, msg, socket):
+def _callback_sync_clock_(net_client_controller, msg, socket):
     net_client_controller.net_ticks = msg.ticks - net_client_controller.game.duration
 
 
@@ -39,12 +41,24 @@ def _callback_sync_map_boosts_(net_client_controller, msg, socket):
         net_client_controller.game.map.pacman_boosts = msg.pacman_boosts
 
 
+def _callback_end_game_(net_client_controller, msg, socket):
+    net_client_controller.game.status = GameStatus.FINISHED
+
+
+def _callback_boost_pickup_(net_client_controller, msg, socket):
+    msg.parse_boost(net_client_controller.game)
+    entity = net_client_controller.game.entities[msg.ent_uid]
+    entity.pickup(msg.boost)
+
+
 _CALLBACKS_ = {
     MsgResult.uid: _callback_result_,
     MsgSyncEntity.uid: _callback_sync_entity_,
     MsgSyncMap.uid: _callback_sync_map_,
-    MsgDoTick.uid: _callback_do_tick_,
-    MsgSyncMapBoosts.uid: _callback_sync_map_boosts_
+    MsgSyncClock.uid: _callback_sync_clock_,
+    MsgSyncMapBoosts.uid: _callback_sync_map_boosts_,
+    MsgEndGame.uid: _callback_end_game_,
+    MsgBoostPickup.uid: _callback_boost_pickup_,
 }
 
 
@@ -118,6 +132,9 @@ class NetClientController(AbstractController):
     def on_death(self):
         self._send_message_(MsgSyncEntity(entity=self.entity))
         self.controller.on_death()
+
+    def on_boost_pickup(self):
+        self.controller.on_boost_pickup()
 
     def _send_message_(self, msg):
         if self.socket._closed:

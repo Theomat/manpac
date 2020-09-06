@@ -1,12 +1,14 @@
 from manpac.utils.export_decorator import export
 from manpac.controllers.abstract_controller import AbstractController
-from manpac.controllers.net_message import parse, \
-    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgDoTick, MsgCompound, MsgSyncMapBoosts
+from manpac.controllers.net.net_message import parse, \
+    MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgSyncClock, MsgCompound, \
+    MsgSyncMapBoosts, MsgEndGame, MsgBoostPickup
 
 import socketserver
 import threading
 from functools import partial
 import time
+import numpy as np
 
 
 def _callback_join_(net_server_controller, msg, socket, client_address):
@@ -23,8 +25,10 @@ def _callback_result_(net_server_controller, msg, socket, client_address):
 
 def _callback_sync_entity_(net_server_controller, msg, socket, client_address):
     entity = net_server_controller.entity
-    entity.teleport(msg.pos)
+    if net_server_controller.game.map._do_boost_pickup_(entity, np.sum(np.abs(entity.pos - msg.pos))):
+        pass  # TODO: synchron buff
     entity.face(msg.direction)
+    entity.teleport(msg.pos)
     entity.alive = msg.alive
 
 
@@ -83,10 +87,14 @@ class NetServerController(AbstractController):
             time.sleep(.1)
 
     def on_game_end(self):
+        self._send_message_(MsgEndGame())
         self.server.shutdown()
 
     def on_death(self):
         self._send_message_(MsgSyncEntity(entity=self.entity))
+
+    def on_boost_pickup(self):
+        self._send_message_(MsgBoostPickup(self.entity.uid, self.entity.holding))
 
     def _send_message_(self, msg):
         self.socket.sendto(msg.bytes(), self.client_address)
@@ -100,6 +108,6 @@ class NetServerController(AbstractController):
     def update(self, ticks):
         messages = [MsgSyncEntity(entity=e) for e in self.game.entities
                     if self.entity != e]
-        messages.append(MsgDoTick(self.game.duration))
+        messages.append(MsgSyncClock(self.game.duration))
         self._send_message_(MsgCompound(*messages))
         self._send_message_(MsgSyncMapBoosts(self.game.map.ghost_boosts, self.game.map.pacman_boosts))

@@ -1,8 +1,9 @@
 from manpac.utils import export
 from manpac.entity_type import EntityType
 from manpac.direction import Direction
+import manpac.controllers.net.net_boost_serializer as boost_serializer
 
-from abc import ABC, abstractmethod
+from abc import ABC
 import numpy as np
 
 
@@ -24,10 +25,12 @@ class NetMessage(ABC):
     def __repr__(self):
         return str(self)
 
+    def __str__(self):
+        return "{}:".format(self.uid)
+
     @classmethod
-    @abstractmethod
     def from_string(cls, string):
-        pass
+        return cls()
 
     def bytes(self):
         return bytes(str(self), 'ascii')
@@ -122,7 +125,7 @@ class MsgSyncEntity(NetMessage):
 
 
 @export
-class MsgDoTick(NetMessage):
+class MsgSyncClock(NetMessage):
     uid = 5
 
     def __init__(self, ticks):
@@ -133,7 +136,7 @@ class MsgDoTick(NetMessage):
 
     @classmethod
     def from_string(cls, string):
-        return MsgDoTick(float(string))
+        return MsgSyncClock(float(string))
 
 
 @export
@@ -186,12 +189,43 @@ class MsgSyncMapBoosts(NetMessage):
         return MsgSyncMapBoosts(ghosts, pacmans)
 
 
+@export
+class MsgEndGame(NetMessage):
+    uid = 8
+
+
+@export
+class MsgBoostPickup(NetMessage):
+    uid = 9
+
+    def __init__(self, ent_uid, boost):
+        self.ent_uid = ent_uid
+        self.boost = boost
+        self.boost_parsed = not isinstance(self.boost, str)
+
+    def __str__(self):
+        return "{}:{}/{}".format(self.uid, self.ent_uid, boost_serializer.serialize(self.boost))
+
+    def parse_boost(self, game):
+        if self.boost_parsed:
+            return
+        self.boost = boost_serializer.parse(self.boost, game)
+        self.boost_parsed = True
+
+    @classmethod
+    def from_string(cls, string):
+        data = string.split("/")
+        return MsgBoostPickup(int(data[0]), data[1])
+
+
 _MESSAGES_ = {
     MsgJoin.uid: MsgJoin,
     MsgResult.uid: MsgResult,
     MsgSyncMap.uid: MsgSyncMap,
     MsgSyncEntity.uid: MsgSyncEntity,
-    MsgDoTick.uid: MsgDoTick,
+    MsgSyncClock.uid: MsgSyncClock,
     MsgCompound.uid: MsgCompound,
     MsgSyncMapBoosts.uid: MsgSyncMapBoosts,
+    MsgEndGame.uid: MsgEndGame,
+    MsgBoostPickup.uid: MsgBoostPickup,
 }
