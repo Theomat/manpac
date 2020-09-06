@@ -8,11 +8,11 @@ class SwapModifier(AbstractModifier):
     Represents a swap modifier boost.
     """
 
-    def __init__(self, game, range):
-        super(SwapModifier, self).__init__(game, 0)
+    def __init__(self, game, range, duration=30):
+        super(SwapModifier, self).__init__(game, duration)
         self.range = range
 
-    def on_use(self, caster):
+    def on_death(self, caster):
         # Find closest entity in range
         closest = None
         distance = 1e12
