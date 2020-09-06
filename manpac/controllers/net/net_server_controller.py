@@ -2,7 +2,7 @@ from manpac.utils.export_decorator import export
 from manpac.controllers.abstract_controller import AbstractController
 from manpac.controllers.net.net_message import parse, \
     MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgSyncClock, MsgCompound, \
-    MsgSyncMapBoosts, MsgEndGame, MsgBoostPickup
+    MsgSyncMapBoosts, MsgEndGame, MsgBoostPickup, MsgYourEntity, MsgStartGame
 
 import socketserver
 import threading
@@ -65,6 +65,7 @@ class NetServerController(AbstractController):
 
         self.free = False
         self.client_address = None
+        self.first_tick = True
 
     def on_attach(self, entity):
         super(NetServerController, self).on_attach(entity)
@@ -77,6 +78,7 @@ class NetServerController(AbstractController):
         for i, entity in enumerate(self.game.entities):
             entity.uid = i
         self._notify_(MsgSyncMap(self.game.map.terrain))
+        self._send_message_(MsgYourEntity(self.entity.uid))
         for entity in self.game.entities:
             self._send_message_(MsgSyncEntity(entity=entity))
 
@@ -106,6 +108,9 @@ class NetServerController(AbstractController):
         self._send_message_(MsgResult(True))
 
     def update(self, ticks):
+        if self.first_tick:
+            self.first_tick = False
+            self._send_message_(MsgStartGame())
         messages = [MsgSyncEntity(entity=e) for e in self.game.entities
                     if self.entity != e]
         messages.append(MsgSyncClock(self.game.duration))

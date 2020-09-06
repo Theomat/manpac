@@ -218,6 +218,26 @@ class MsgBoostPickup(NetMessage):
         return MsgBoostPickup(int(data[0]), data[1])
 
 
+@export
+class MsgYourEntity(NetMessage):
+    uid = 10
+
+    def __init__(self, ent_uid):
+        self.ent_uid = ent_uid
+
+    def __str__(self):
+        return "{}:{}".format(self.uid, self.ent_uid)
+
+    @classmethod
+    def from_string(cls, string):
+        return MsgYourEntity(int(string))
+
+
+@export
+class MsgStartGame(NetMessage):
+    uid = 11
+
+
 _MESSAGES_ = {
     MsgJoin.uid: MsgJoin,
     MsgResult.uid: MsgResult,
@@ -228,4 +248,6 @@ _MESSAGES_ = {
     MsgSyncMapBoosts.uid: MsgSyncMapBoosts,
     MsgEndGame.uid: MsgEndGame,
     MsgBoostPickup.uid: MsgBoostPickup,
+    MsgYourEntity.uid: MsgYourEntity,
+    MsgStartGame.uid: MsgStartGame,
 }

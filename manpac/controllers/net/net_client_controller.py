@@ -3,7 +3,7 @@ from manpac.game_status import GameStatus
 from manpac.controllers.abstract_controller import AbstractController
 from manpac.controllers.net.net_message import parse, \
     MsgJoin, MsgResult, MsgSyncMap, MsgSyncEntity, MsgSyncClock, MsgSyncMapBoosts, \
-    MsgEndGame, MsgBoostPickup
+    MsgEndGame, MsgBoostPickup, MsgYourEntity, MsgStartGame
 
 import socket
 import threading
@@ -19,16 +19,17 @@ def _callback_sync_entity_(net_client_controller, msg, socket):
     entity.teleport(msg.pos)
     entity.face(msg.direction)
     entity.alive = msg.alive
-    entity.uid = msg.ent_uid
 
     if entity == net_client_controller.entity:
         net_client_controller._send_message_(MsgResult(True))
+
+    entity.uid = msg.ent_uid
 
 
 def _callback_sync_map_(net_client_controller, msg, socket):
     net_client_controller.terrain = msg.terrain
     net_client_controller._send_message_(MsgResult(True))
-    net_client_controller.has_started = True
+    net_client_controller.has_map = True
 
 
 def _callback_sync_clock_(net_client_controller, msg, socket):
@@ -51,6 +52,24 @@ def _callback_boost_pickup_(net_client_controller, msg, socket):
     entity.pickup(msg.boost)
 
 
+def _callback_your_entity_(net_client_controller, msg, socket):
+    my_uid = 1 - net_client_controller.entity.uid
+    desired_uid = msg.ent_uid
+    if my_uid != desired_uid:
+        entities = net_client_controller.game.entities
+        other = entities[msg.ent_uid]
+        other_controller = other.controller
+        net_client_controller.entity.controller = other_controller
+        net_client_controller.entity = other
+        other.controller = net_client_controller
+
+    net_client_controller.controller.on_attach(net_client_controller.entity)
+
+
+def _callback_start_game_(net_client_controller, msg, socket):
+    net_client_controller.game.status = GameStatus.ONGOING
+
+
 _CALLBACKS_ = {
     MsgResult.uid: _callback_result_,
     MsgSyncEntity.uid: _callback_sync_entity_,
@@ -59,6 +78,8 @@ _CALLBACKS_ = {
     MsgSyncMapBoosts.uid: _callback_sync_map_boosts_,
     MsgEndGame.uid: _callback_end_game_,
     MsgBoostPickup.uid: _callback_boost_pickup_,
+    MsgYourEntity.uid: _callback_your_entity_,
+    MsgStartGame.uid: _callback_start_game_,
 }
 
 
@@ -73,9 +94,9 @@ class NetClientController(AbstractController):
         self.has_started = False
         self.controller = controller
 
-        self.net_ticks = 0
-        self.taken = 0
+        self.has_map = False
 
+        self.net_ticks = 0
         self.max_ticks_in_advance = 30
 
         self.host = host
@@ -83,7 +104,8 @@ class NetClientController(AbstractController):
 
     def on_attach(self, entity):
         super(NetClientController, self).on_attach(entity)
-        self.controller.on_attach(entity)
+        for i, entity in enumerate(self.game.entities):
+            entity.uid = -(i + 1)
 
         ret_code = self.socket.connect_ex((self.host, self.port))
         if not ret_code == 0:
@@ -109,14 +131,16 @@ class NetClientController(AbstractController):
                 _CALLBACKS_[msg.uid](self, msg, self.socket)
 
     def on_game_start(self):
-        self.entity.uid = -5
-        while not self.has_started and not self.entity.uid >= 0:
-            time.sleep(.1)
+        while not self.has_map:
+            time.sleep(.02)
         self.controller.on_game_start()
         self.game.map.terrain = self.terrain
         self.game.map.boost_generator = None
         self.game.map.compiled = False
         self.game.map.compile()
+
+        if self.game.status is GameStatus.ONGOING:
+            self.game.status = GameStatus.NOT_STARTED
 
     def on_game_end(self):
         self.socket.close()
