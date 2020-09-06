@@ -48,7 +48,7 @@ class EntityDrawer():
         if self.entity.type is EntityType.GHOST:
             self.icon_sprite = pygame.image.load("assets/{}d1.png".format(name)).convert_alpha()
             self.icon_sprite = pygame.transform.scale(self.icon_sprite, (scale, scale))
-            self.winner_sprite = pygame.transform.scale(self.icon_sprite, (3 * scale, 3 *scale))
+            self.winner_sprite = pygame.transform.scale(self.icon_sprite, (3 * scale, 3 * scale))
 
         # Load entity sprites
         s = []
@@ -109,4 +109,4 @@ class EntityDrawer():
             self.sprite_index %= 4
 
     def draw_winner_icon(self, display, x, y):
-        display.blit(self.winner_sprite, (round(x), round(y)))
+        display.blit(self.winner_sprite, (round(x - 1.5 * self.scale), round(y - 3 * self.scale)))
