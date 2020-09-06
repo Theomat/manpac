@@ -51,7 +51,8 @@ class Entity():
             the controller to be attached
         """
         self.controller = controller
-        controller.on_attach(self)
+        if self.controller:
+            controller.on_attach(self)
 
     @property
     def map_position(self):
