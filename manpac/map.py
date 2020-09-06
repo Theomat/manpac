@@ -270,6 +270,30 @@ class Map():
                 maxi = 0
         return maxi
 
+    def _do_boost_pickup_(self, entity, distance_traveled):
+        v = entity.direction.vector
+        v_orth = entity.direction.rot90(1).vector
+        # Pick up boosts
+        boosts = self.ghost_boosts if entity.type is EntityType.GHOST else self.pacman_boosts
+        for index, (loc, t) in enumerate(boosts):
+            vector = (loc + .5) - entity.pos
+            # if not in the right direction
+            if (np.sign(vector) != v).all():
+                continue
+            # If on the side direction entity is not big enough to walk on it
+            if np.max(np.abs(vector * v_orth)) > entity.size + self.boost_size:
+                continue
+            distance = np.max(vector * v) - entity.size - self.boost_size
+            if distance <= distance_traveled:
+                if self.boost_generator:
+                    modifier = self.boost_generator.make_modifier(entity, loc)
+                    entity.pickup(modifier)
+                boosts.pop(index)
+                if entity.type is EntityType.GHOST:
+                    self.pacman_boosts.append([loc, t])
+                return True
+        return False
+
     def move(self, entity, ticks):
         """
         Move the specified entity on this map for the specified number of ticks.
@@ -291,27 +315,8 @@ class Map():
             return 0
         max_distance = self.how_far(entity, ticks * speed)
         maxi = max_distance / speed
-        v = entity.direction.vector
-        v_orth = entity.direction.rot90(1).vector
 
-        # Pick up boosts
-        boosts = self.ghost_boosts if entity.type is EntityType.GHOST else self.pacman_boosts
-        for index, (loc, t) in enumerate(boosts):
-            vector = (loc + .5) - entity.pos
-            # if not in the right direction
-            if (np.sign(vector) != v).all():
-                continue
-            # If on the side direction entity is not big enough to walk on it
-            if np.max(np.abs(vector * v_orth)) > entity.size + self.boost_size:
-                continue
-            distance = np.max(vector * v) - entity.size - self.boost_size
-            if distance <= maxi * speed:
-                if self.boost_generator:
-                    modifier = self.boost_generator.make_modifier(entity, loc)
-                    entity.pickup(modifier)
-                boosts.pop(index)
-                if entity.type is EntityType.GHOST:
-                    self.pacman_boosts.append([loc, t])
+        self._do_boost_pickup_(entity, maxi * speed)
         # Actual movement
         entity.move(maxi)
         return maxi * speed
