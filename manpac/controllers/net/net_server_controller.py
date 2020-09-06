@@ -28,13 +28,18 @@ def _callback_result_(net_server_controller, msg, socket, client_address):
 
 
 def _callback_sync_entity_(net_server_controller, msg, socket, client_address):
-    net_server_controller.sync_message = msg
+    if net_server_controller.pushed_local:
+        if not net_server_controller.has_result:
+            net_server_controller._push_local_entity_()
+        else:
+            net_server_controller.pushed_local = False
+            net_server_controller.sync_message = msg
+    else:
+        net_server_controller.sync_message = msg
 
 
 def _callback_boost_use_(net_server_controller, msg, socket, client_address):
     net_server_controller.entity.use_modifier()
-    net_server_controller.sync_message = MsgSyncEntity(entity=net_server_controller.entity)
-    net_server_controller._send_message_(net_server_controller.sync_message)
 
 
 _CALLBACKS_ = {
@@ -84,6 +89,7 @@ class NetServerController(AbstractController):
         self.is_first_tick_done = False
 
         self.sync_message = None
+        self.pushed_local = False
 
         self.last_holdings = []
         self.last_modifiers = []
@@ -164,6 +170,12 @@ class NetServerController(AbstractController):
                 return True
         return False
 
+    def _push_local_entity_(self):
+        self.has_result = False
+        self.has_ok = False
+        self.pushed_local = True
+        self._send_message_(MsgSyncEntity(entity=self.entity))
+
     def update(self, ticks):
         # Tell the game has started
         if not self.is_first_tick_done:
@@ -204,6 +216,5 @@ class NetServerController(AbstractController):
                 self._send_message_(MsgSyncModifiers(entity.uid, entity.modifiers))
                 # If a boost with a teleport was used, send local pos
                 if self._should_send_pos_upd_(self.last_modifiers[i]):
-                    self.sync_message = MsgSyncEntity(entity=self.entity)
-                    self._send_message_(self.sync_message)
+                    self._push_local_entity_()
                 self.last_modifiers[i] = entity.modifiers[:]

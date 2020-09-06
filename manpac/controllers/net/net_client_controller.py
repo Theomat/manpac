@@ -27,6 +27,10 @@ def _callback_sync_entity_(net_client_controller, msg, socket):
 
     net_client_controller.ticks_since_last_upd = 0
 
+    if entity == net_client_controller.entity:
+        net_client_controller.remote_alive = msg.alive
+        net_client_controller._send_message_(MsgResult(True))
+
 
 def _callback_sync_map_(net_client_controller, msg, socket):
     net_client_controller.terrain = msg.terrain
@@ -132,6 +136,8 @@ class NetClientController(AbstractController):
         self.max_ticks_in_advance = 30
         self.ticks_since_last_upd = 0
 
+        self.remote_alive = True
+
         self.host = host
         self.port = port
 
@@ -235,6 +241,9 @@ class NetClientController(AbstractController):
         self.ticks_since_last_upd += ticks
 
     def on_death(self):
+        if self.remote_alive:
+            self.entity.alive = True
+            return
         self.controller.on_death()
 
     def on_boost_pickup(self):
