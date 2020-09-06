@@ -44,6 +44,7 @@ def _callback_sync_map_boosts_(net_client_controller, msg, socket):
 
 
 def _callback_end_game_(net_client_controller, msg, socket):
+    net_client_controller.has_game_ended = True
     net_client_controller.game.status = GameStatus.FINISHED
 
 
@@ -112,6 +113,7 @@ class NetClientController(AbstractController):
 
         self.has_map = False
         self.has_game_started = False
+        self.has_game_ended = False
         self.ready_to_start = False
 
         self.net_ticks = 0
@@ -163,8 +165,11 @@ class NetClientController(AbstractController):
         self.ready_to_start = True
 
     def on_game_end(self):
+        if not self.has_game_ended:
+            self.game._fired_end = False
+            self.game.status = GameStatus.ONGOING
+            return
         self.socket.close()
-        self.controller.on_death()
         self.controller.on_game_end()
 
     def _notify_(self, msg):
@@ -198,14 +203,12 @@ class NetClientController(AbstractController):
     def update(self, ticks):
         if self.ticks_since_last_upd >= self.max_ticks_in_advance:
             return
-        if self.net_ticks >= self.max_ticks_in_advance:
-            ticks *= 2
         self.ticks_since_last_upd += ticks
 
         if self.entity.alive:
             self.controller.update(ticks)
         self._send_message_(MsgSyncEntity(entity=self.entity))
-        if self.net_ticks <= 0:
+        if self.ticks_since_last_upd > ticks:
             for entity in self.game.entities:
                 if entity != self.entity:
                     self.game.map.move(entity, ticks)
