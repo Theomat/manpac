@@ -133,7 +133,7 @@ class NetClientController(AbstractController):
         self.ready_to_start = False
 
         self.net_ticks = 0
-        self.max_ticks_in_advance = 30
+        self.max_ticks_in_advance = 60
         self.ticks_since_last_upd = 0
 
         self.remote_alive = True

@@ -78,6 +78,23 @@ class Interface():
             self.pacman_boost = pygame.image.load("assets/excla.png").convert_alpha()
             self.pacman_boost = pygame.transform.scale(self.pacman_boost, (self.scale, self.scale))
 
+    def draw_end_screen(self):
+        self.screen.fill((0, 0, 0))
+        font = pygame.font.Font(pygame.font.get_default_font(), 36)
+        text_surface = font.render('Winner', True, (255, 255, 255))
+        self.screen.blit(text_surface, dest=(self.width / 2, self.height / 2 + self.scale * 2))
+        self.game._find_winner_()
+        winner = self.game.winner
+        if winner is None:
+            return
+        for entity in self.game.entities:
+            if entity.type is EntityType.GHOST:
+                if entity.alive:
+                    for entity_drawer in self.entities_drawer:
+                        if entity_drawer.entity == entity:
+                            #drawer = [d for d in self.entities_drawer if d.entity == winner][0]
+                            entity_drawer.draw_winner_icon(self.screen, self.width / 2, self.height / 2)
+
     def start(self, map):
         self.__pygame_init__(map)
         self.game.start(map)
@@ -123,3 +140,8 @@ class Interface():
                 self.draw()
                 pygame.display.update()
                 self.last_updated = pygame.time.get_ticks()
+
+        # End of the game
+        self.draw_end_screen()
+        pygame.display.update()
+        time.sleep(3)

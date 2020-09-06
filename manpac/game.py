@@ -24,6 +24,7 @@ class Game():
         self.status = GameStatus.NOT_STARTED
         self.duration = 0
         self.map = None
+        self.winner = None
         self._fired_on_end = False
 
     def start(self, map):
@@ -56,6 +57,13 @@ class Game():
             if entity.controller:
                 entity.controller.on_game_start()
 
+    def _find_winner_(self):
+        for entity in self.entities:
+            if entity.alive and entity.type is EntityType.GHOST:
+                self.winner = entity
+                print("Found winner :", self.winner)
+                return
+
     def update(self, ticks):
         """
         Update this game for the specified number of ticks.
@@ -70,6 +78,7 @@ class Game():
         if(self.status is GameStatus.FINISHED):
             if not self._fired_on_end:
                 self._fired_on_end = True
+                self._find_winner_()
                 # Fire on_game_end event
                 for entity in self.entities:
                     if entity.controller:
@@ -91,6 +100,7 @@ class Game():
         if self.ghosts <= 1:
             self.status = GameStatus.FINISHED
             self._fired_on_end = True
+            self._find_winner_()
             # Fire on_game_end event
             for entity in self.entities:
                 if entity.controller:
@@ -122,6 +132,8 @@ class Game():
         if entity1.type is EntityType.PACMAN and entity2.type is EntityType.GHOST:
             entity2.kill()
             self.ghosts -= 1
+            if self.ghosts == 1:
+                self._find_winner_()
         elif entity2.type is EntityType.PACMAN and entity1.type is EntityType.GHOST:
             self.on_collision(entity2, entity1)
         else:
