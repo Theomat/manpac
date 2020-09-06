@@ -82,7 +82,8 @@ class Interface():
         self.screen.fill((0, 0, 0))
         font = pygame.font.Font(pygame.font.get_default_font(), 36)
         text_surface = font.render('Winner', True, (255, 255, 255))
-        self.screen.blit(text_surface, dest=(self.width / 2, self.height / 2 + self.scale * 2))
+        (width, height) = font.size("Winner")
+        self.screen.blit(text_surface, dest=(self.width // 2 - width // 2, self.height // 2 + height))
         self.game._find_winner_()
         winner = self.game.winner
         if winner is None:
